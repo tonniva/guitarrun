@@ -149,6 +149,7 @@ function registerHit(timingError, hitWindow) {
   maxCombo = Math.max(maxCombo, combo);
   const points = perfect ? 100 : 70;
   score += points + Math.min(combo * 2, 50);
+  window.dispatchEvent(new CustomEvent('guitarrun-verified-hit',{detail:{score,combo,perfect}}));
   els.hitEffect.classList.remove('miss-grade','nohit-grade');
   els.hitEffect.querySelector('strong').textContent = freePlay ? t('correct','CORRECT!') : perfect ? 'PERFECT!' : 'GOOD!';
   els.hitEffect.querySelector('span').textContent = `+${points}`;
@@ -562,7 +563,29 @@ function startPractice() {
   els.quickPracticeBtn.classList.add('running');
   freePlay = !els.rhythmEnabled.checked;
   practiceIntervalMs = freePlay ? 1000 : (60000 / Number(els.bpmSlider.value)) / Number(els.noteValue.value);
+  window.dispatchEvent(new CustomEvent('guitarrun-practice-start',{detail:{key:NOTE_NAMES[Number(els.keySelect.value)],scale:SCALES[els.scaleSelect.value].name,pattern:els.patternName.textContent}}));
   startCountdown();
+}
+
+function hasPracticeInput() {
+  return Boolean(demoTimer || stream?.getAudioTracks().some(track => track.readyState === 'live'));
+}
+
+function togglePractice() {
+  const isRunning = practiceTimer || countdownTimer || countdownGoTimer || positionBreakTimer;
+  if (isRunning) return stopPractice();
+  if (!hasPracticeInput()) {
+    toast(t('connect_before_practice','กรุณาเชื่อมต่อกีตาร์ก่อนเริ่มฝึก'));
+    els.connectBtn.classList.add('needs-connection');
+    els.headerConnect.classList.add('needs-connection');
+    els.trainerFeedback.textContent = t('connect_before_practice','กรุณาเชื่อมต่อกีตาร์ก่อนเริ่มฝึก');
+    setTimeout(() => {
+      els.connectBtn.classList.remove('needs-connection');
+      els.headerConnect.classList.remove('needs-connection');
+    }, 2200);
+    return;
+  }
+  startPractice();
 }
 
 function startCountdown() {
@@ -599,6 +622,7 @@ function startCountdown() {
 }
 
 function stopPractice(resetLabel = true) {
+  const hadActivePractice=Boolean(practiceTimer||countdownTimer||countdownGoTimer||positionBreakTimer);
   clearInterval(practiceTimer); practiceTimer = null;
   clearInterval(countdownTimer); countdownTimer = null;
   clearTimeout(countdownGoTimer); countdownGoTimer = null;
@@ -608,6 +632,7 @@ function stopPractice(resetLabel = true) {
   previewedMarathonPosition = -1;
   document.querySelectorAll('.cell.next-preview,.cell.next-preview-root,.cell.next-preview-start').forEach(cell => cell.classList.remove('next-preview','next-preview-root','next-preview-start'));
   activeTarget = null;
+  if(hadActivePractice) window.dispatchEvent(new CustomEvent('guitarrun-practice-end'));
   if (resetLabel) {
     els.practiceBtn.textContent = `▶ ${t('start_practice','เริ่มฝึก')}`;
     els.practiceBtn.classList.remove('running');
@@ -806,8 +831,8 @@ els.rhythmEnabled.addEventListener('change', () => {
   if (practiceTimer) startPractice();
 });
 els.lessonMode.addEventListener('change', () => { stopPractice(); createScalePattern(); els.trainerFeedback.textContent = 'ดีดถูกและตรงจังหวะ จึงไปโน้ตถัดไป'; });
-els.practiceBtn.addEventListener('click', () => practiceTimer || countdownTimer || countdownGoTimer || positionBreakTimer ? stopPractice() : startPractice());
-els.quickPracticeBtn.addEventListener('click', () => practiceTimer || countdownTimer || countdownGoTimer || positionBreakTimer ? stopPractice() : startPractice());
+els.practiceBtn.addEventListener('click', togglePractice);
+els.quickPracticeBtn.addEventListener('click', togglePractice);
 els.loopToggle.addEventListener('click', () => { loopPractice = !loopPractice; els.loopToggle.classList.toggle('active',loopPractice); els.loopToggle.textContent = `↻ LOOP ${loopPractice?'ON':'OFF'}`; });
 els.flowToggle.addEventListener('click', () => {
   flowMode = !flowMode;

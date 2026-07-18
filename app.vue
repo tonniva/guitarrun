@@ -35,6 +35,12 @@ import transitionZh from './locales/transition-ui/zh.json'
 import transitionJa from './locales/transition-ui/ja.json'
 import transitionKo from './locales/transition-ui/ko.json'
 import transitionEs from './locales/transition-ui/es.json'
+import leaderboardTh from './locales/leaderboard-ui/th.json'
+import leaderboardEn from './locales/leaderboard-ui/en.json'
+import leaderboardZh from './locales/leaderboard-ui/zh.json'
+import leaderboardJa from './locales/leaderboard-ui/ja.json'
+import leaderboardKo from './locales/leaderboard-ui/ko.json'
+import leaderboardEs from './locales/leaderboard-ui/es.json'
 
 const rhythmText = {
   th:{use_tempo:'ใช้จังหวะ',tempo_on_hint:'เปิดเมโทรนอมและตรวจความตรงจังหวะ',tempo_off_hint:'เล่นตามความเร็วตัวเอง — ตรวจเฉพาะโน้ต',detected_note:'โน้ตที่ได้ยิน'},
@@ -45,11 +51,12 @@ const rhythmText = {
   es:{use_tempo:'Usar tempo',tempo_on_hint:'Metrónomo y puntuación de ritmo activados',tempo_off_hint:'Practica a tu ritmo; solo se evalúan las notas',detected_note:'Nota detectada'}
 }
 const messages = {
-  th: { ...th, ...curriculumTh, ...trainerTh, ...detailsTh, ...errorsTh, ...transitionTh, ...rhythmText.th }, en: { ...en, ...curriculumEn, ...trainerEn, ...detailsEn, ...errorsEn, ...transitionEn, ...rhythmText.en },
-  zh: { ...zh, ...curriculumZh, ...trainerZh, ...detailsZh, ...errorsZh, ...transitionZh, ...rhythmText.zh }, ja: { ...ja, ...curriculumJa, ...trainerJa, ...detailsJa, ...errorsJa, ...transitionJa, ...rhythmText.ja },
-  ko: { ...ko, ...curriculumKo, ...trainerKo, ...detailsKo, ...errorsKo, ...transitionKo, ...rhythmText.ko }, es: { ...es, ...curriculumEs, ...trainerEs, ...detailsEs, ...errorsEs, ...transitionEs, ...rhythmText.es }
+  th: { ...th, ...curriculumTh, ...trainerTh, ...detailsTh, ...errorsTh, ...transitionTh, ...leaderboardTh, ...rhythmText.th }, en: { ...en, ...curriculumEn, ...trainerEn, ...detailsEn, ...errorsEn, ...transitionEn, ...leaderboardEn, ...rhythmText.en },
+  zh: { ...zh, ...curriculumZh, ...trainerZh, ...detailsZh, ...errorsZh, ...transitionZh, ...leaderboardZh, ...rhythmText.zh }, ja: { ...ja, ...curriculumJa, ...trainerJa, ...detailsJa, ...errorsJa, ...transitionJa, ...leaderboardJa, ...rhythmText.ja },
+  ko: { ...ko, ...curriculumKo, ...trainerKo, ...detailsKo, ...errorsKo, ...transitionKo, ...leaderboardKo, ...rhythmText.ko }, es: { ...es, ...curriculumEs, ...trainerEs, ...detailsEs, ...errorsEs, ...transitionEs, ...leaderboardEs, ...rhythmText.es }
 }
 const locale = ref('th')
+const runtimeConfig = useRuntimeConfig()
 const languages = [
   { code: 'th', flag: '🇹🇭', name: 'ไทย' },
   { code: 'en', flag: '🇬🇧', name: 'English' },
@@ -70,8 +77,10 @@ function applyLanguage(code) {
 }
 
 onMounted(async () => {
+  window.__GUITARRUN_CONFIG__ = runtimeConfig.public
   applyLanguage(localStorage.getItem('fret-language') || 'th')
   await import('./guitar.client.js')
+  await import('./account.client.js')
 })
 
 watch(locale, code => {
@@ -83,7 +92,7 @@ watch(locale, code => {
   <div class="noise" />
   <header class="topbar">
     <a class="brand" href="#" aria-label="GuitarRun home"><img src="/brand/guitarrun-logo.svg" alt="GuitarRun"></a>
-    <div class="header-actions"><label class="language-menu" :aria-label="tr('language')"><select v-model="locale"><option v-for="language in languages" :key="language.code" :value="language.code">{{ language.flag }} {{ language.name }}</option></select></label><button id="headerConnect" class="header-connect">⌁ {{ tr('connect') }}</button><div class="status-pill"><i id="statusDot" /><span id="statusText">{{ tr('status_offline') }}</span></div></div>
+    <div class="header-actions"><button id="profileButton" class="profile-button"><span id="profileAvatar">GR</span><b id="profileLabel">เข้าสู่ระบบ</b></button><label class="language-menu" :aria-label="tr('language')"><select v-model="locale"><option v-for="language in languages" :key="language.code" :value="language.code">{{ language.flag }} {{ language.name }}</option></select></label><button id="headerConnect" class="header-connect">⌁ {{ tr('connect') }}</button><div class="status-pill"><i id="statusDot" /><span id="statusText">{{ tr('status_offline') }}</span></div></div>
   </header>
   <button id="setupToggle" class="setup-fab" aria-expanded="false" aria-controls="scale-setup"><span>⚙</span><b id="setupSummary">C · Major · P1</b></button>
 
@@ -131,6 +140,28 @@ watch(locale, code => {
 
     <section id="trainer" class="trainer">
       <div class="trainer-title"><div><span class="eyebrow">SCALE TRAINER</span><h2>ฝึกแพตเทิร์นให้<br><em>เข้ากับจังหวะ</em></h2></div><p>เลือกสเกลและตำแหน่งที่ต้องการ เมโทรนอมจะพาคุณไล่โน้ตขึ้น–ลงทีละจังหวะ</p></div>
+      <div class="performance-board">
+        <div class="performance-live">
+          <div class="performance-head"><span>{{ tr('live_performance') }}</span><b id="positionProgress">POSITION 1 /
+              7</b></div>
+          <div class="grade-bars">
+            <div class="grade perfect"><span>{{ tr('perfect') }} <b id="perfectCount">0</b></span><i><em
+                  id="perfectBar" /></i></div>
+            <div class="grade good"><span>{{ tr('good') }} <b id="goodCount">0</b></span><i><em id="goodBar" /></i>
+            </div>
+            <div class="grade miss"><span>{{ tr('miss') }} <b id="missCount">0</b></span><i><em id="missBar" /></i>
+            </div>
+          </div>
+          <div class="miss-breakdown"><span>{{ tr('wrong_note') }} <b id="wrongCount">0</b></span><span>{{ tr('timing')
+              }} <b id="timingCount">0</b></span><span>{{ tr('no_hit') }} <b id="noHitCount">0</b></span></div>
+          <div class="run-meta"><span>{{ tr('max_combo') }} <b id="maxComboValue">0×</b></span><span>{{ tr('session') }}
+              <b id="sessionScore">0000</b></span></div>
+        </div>
+        <div class="records-panel">
+          <div class="performance-head"><span>{{ tr('personal_best') }}</span><b>{{ tr('local_records') }}</b></div>
+          <div id="recordBoard" class="record-list" />
+        </div>
+      </div>
       <div class="trainer-panel">
         <div class="trainer-stage">
           <div id="countdownOverlay" class="countdown-overlay"><small>{{ tr('get_ready') }}</small><strong id="countdownValue">3</strong></div>
@@ -141,19 +172,14 @@ watch(locale, code => {
         </div>
         <div class="trainer-foot"><span><b id="stepNow">0</b> / <span id="stepTotal">0</span> NOTES</span><span id="trainerFeedback">{{ tr('trainer_feedback') }}</span></div>
       </div>
-      <div class="performance-board">
-        <div class="performance-live">
-          <div class="performance-head"><span>{{ tr('live_performance') }}</span><b id="positionProgress">POSITION 1 / 7</b></div>
-          <div class="grade-bars">
-            <div class="grade perfect"><span>{{ tr('perfect') }} <b id="perfectCount">0</b></span><i><em id="perfectBar" /></i></div>
-            <div class="grade good"><span>{{ tr('good') }} <b id="goodCount">0</b></span><i><em id="goodBar" /></i></div>
-            <div class="grade miss"><span>{{ tr('miss') }} <b id="missCount">0</b></span><i><em id="missBar" /></i></div>
-          </div>
-          <div class="miss-breakdown"><span>{{ tr('wrong_note') }} <b id="wrongCount">0</b></span><span>{{ tr('timing') }} <b id="timingCount">0</b></span><span>{{ tr('no_hit') }} <b id="noHitCount">0</b></span></div>
-          <div class="run-meta"><span>{{ tr('max_combo') }} <b id="maxComboValue">0×</b></span><span>{{ tr('session') }} <b id="sessionScore">0000</b></span></div>
-        </div>
-        <div class="records-panel"><div class="performance-head"><span>{{ tr('personal_best') }}</span><b>{{ tr('local_records') }}</b></div><div id="recordBoard" class="record-list" /></div>
-      </div>
+   
+    </section>
+
+    <section id="communityLeaderboard" class="community-leaderboard">
+      <div class="leaderboard-title"><div><span class="eyebrow">{{ tr('community') }}</span><h2>{{ tr('leaderboard_title') }}<br><em>GuitarRun</em></h2></div><div class="leaderboard-intro"><span><i /> {{ tr('live_ranking') }}</span><p>{{ tr('leaderboard_desc') }}</p></div></div>
+      <div class="leaderboard-summary"><div><span>{{ tr('ranked_players') }}</span><strong id="leaderboardPlayers">—</strong><small>{{ tr('guitarists') }}</small></div><div><span>{{ tr('total_practice_time') }}</span><strong id="leaderboardTotalTime">—</strong><small>{{ tr('verified_time') }}</small></div><div><span>{{ tr('current_leader') }}</span><strong id="leaderboardChampion">—</strong><small>{{ tr('current_leader_label') }}</small></div></div>
+      <div id="leaderboardPodium" class="leaderboard-podium"><div class="leaderboard-loading">{{ tr('loading_ranking') }}</div></div>
+      <div class="leaderboard-shell"><div class="leaderboard-head"><span>{{ tr('all_rankings') }}</span><div><span>{{ tr('practice_stats') }}</span><b>{{ tr('verified_practice_time') }}</b></div></div><div id="globalLeaderboard" class="global-leaderboard"><div class="leaderboard-loading">{{ tr('loading_ranking') }}</div></div></div>
     </section>
 
     <section id="roadmap" class="curriculum">
@@ -167,6 +193,7 @@ watch(locale, code => {
   </main>
 
   <footer><span>FRET LAB / NUXT</span><span>WEB AUDIO • REAL-TIME PITCH</span></footer>
+  <div id="profileModal" class="profile-modal" aria-hidden="true"><div class="profile-card"><button id="profileClose" class="profile-close">×</button><span class="eyebrow">GUITARRUN PROFILE</span><div id="signedOutProfile"><h2>เก็บทุกก้าวที่คุณฝึก</h2><p>เข้าสู่ระบบด้วย Google เพื่อบันทึกเวลาฝึก คะแนน และอันดับของคุณ</p><div id="googleSignIn"></div><p id="googleSetupHint" class="google-setup-hint"></p></div><div id="signedInProfile" hidden><div class="profile-identity"><img id="profileImage" alt="Profile"><div><h2 id="profileName">Guitar Player</h2><span id="profileEmail"></span></div></div><label class="profile-upload">เปลี่ยนรูปโปรไฟล์<input id="profileImageInput" type="file" accept="image/png,image/jpeg,image/webp"></label><div class="profile-stats"><span><b id="profilePracticeTime">0h</b>เวลาฝึกจริง</span><span><b id="profileNotes">0</b>โน้ต</span><span><b id="profileBestCombo">0×</b>คอมโบสูงสุด</span></div><button id="logoutButton" class="logout-button">ออกจากระบบ</button></div></div></div>
   <div id="calibrationModal" class="calibration-modal" aria-hidden="true">
     <div class="calibration-card" role="dialog" aria-modal="true" :aria-label="tr('calibrate')">
       <button id="calibrationClose" class="calibration-close" :aria-label="tr('close')">×</button>
