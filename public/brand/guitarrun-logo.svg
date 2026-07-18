@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 430 92" role="img" aria-labelledby="title">
+  <title id="title">GuitarRun</title>
+  <g transform="translate(4 4)">
+    <path fill="#d7ff45" d="M42 2C19 2 2 19 2 42s17 40 40 40c13 0 24-5 32-14V39H43v14h15v8c-4 4-10 6-16 6-14 0-24-11-24-25s10-25 24-25h21L51 29h23L88 15 72 0v9H42z"/>
+    <path fill="#f2efe7" d="M38 10h5L28 75h-5z"/>
+    <path stroke="#f2efe7" stroke-width="3" d="m31 30 10 2m-14 15 10 2m-14 15 10 2"/>
+  </g>
+  <text x="104" y="64" fill="#f2efe7" font-family="Arial Black,Arial,sans-serif" font-size="53" font-style="italic" font-weight="900" letter-spacing="-3">Guitar</text>
+  <text x="282" y="64" fill="#d7ff45" font-family="Arial Black,Arial,sans-serif" font-size="53" font-style="italic" font-weight="900" letter-spacing="-3">Run</text>
+</svg>

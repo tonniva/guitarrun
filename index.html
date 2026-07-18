@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#080b10" />
+  <title>FRET — Real-time Guitar Visualizer</title>
+  <link rel="stylesheet" href="styles.css?v=22" />
+</head>
+<body>
+  <div class="noise"></div>
+  <header class="topbar">
+    <a class="brand" href="#" aria-label="FRET home"><span>F</span>FRET</a>
+    <div class="header-actions"><button id="headerConnect" class="header-connect">⌁ เชื่อมเสียง</button><div class="status-pill"><i id="statusDot"></i><span id="statusText">ยังไม่ได้เชื่อมต่อ</span></div></div>
+  </header>
+  <button id="setupToggle" class="setup-fab" aria-expanded="false" aria-controls="scale-setup"><span>⚙</span><b id="setupSummary">C · Major · P1</b></button>
+
+  <main>
+    <section class="hero">
+      <div class="eyebrow">PLAY IT. SEE IT.</div>
+      <h1>ทุกโน้ตที่คุณเล่น<br><em>ปรากฏตรงหน้า</em></h1>
+      <p>เสียบกีตาร์ เลือกอินพุต แล้วดูตำแหน่งโน้ตบนคอกีตาร์แบบเรียลไทม์</p>
+      <div class="actions">
+        <button id="connectBtn" class="primary"><span class="button-icon">⌁</span> เชื่อมต่อกีตาร์</button>
+        <button id="demoBtn" class="secondary">ทดลองโหมด Demo</button>
+      </div>
+      <p class="privacy">เสียงจะถูกวิเคราะห์ในเครื่องของคุณและไม่ถูกอัปโหลด</p>
+    </section>
+
+    <section class="scale-toolbar" id="scale-setup" aria-label="ตั้งค่าการฝึกสเกล">
+      <div class="scale-toolbar-head"><span class="label">SCALE SETUP</span><span>เลือกบทฝึกก่อนเริ่มเล่น</span><button id="setupClose" aria-label="ปิด Scale Setup">×</button></div>
+      <div class="trainer-controls">
+        <label>KEY<select id="keySelect"></select></label>
+        <label>SCALE<select id="scaleSelect">
+          <option value="major" selected>Major</option>
+          <option value="minor">Natural Minor</option>
+          <option value="majorPenta">Major Pentatonic</option>
+          <option value="minorPenta">Minor Pentatonic</option>
+        </select></label>
+        <label>PATTERN<select id="patternSelect">
+          <option value="0">Position 1</option><option value="1">Position 2</option><option value="2">Position 3</option><option value="3">Position 4</option><option value="4">Position 5</option><option value="5">Position 6</option><option value="6">Position 7</option>
+        </select></label>
+        <label class="tempo-label">TEMPO <output id="bpmValue">80 BPM</output><input id="bpmSlider" type="range" min="40" max="180" value="80" /></label>
+        <label>NOTE VALUE<select id="noteValue"><option value="1">Quarter notes</option><option value="2">Eighth notes</option></select></label>
+        <label class="input-control">LIVE INPUT<select id="inputSelect" aria-label="เลือกอุปกรณ์รับเสียง" disabled><option>Default audio input</option></select><span class="compact-level"><i id="levelBar"></i></span></label>
+      </div>
+      <div class="fixed-mode-controls">
+        <label>LESSON MODE<select id="lessonMode" class="mini-select" aria-label="รูปแบบบทเรียน">
+          <option value="full">Full Pattern</option>
+          <option value="chunkLow">Chunk · สาย 6–5</option>
+          <option value="chunkMid">Chunk · สาย 4–3</option>
+          <option value="chunkHigh">Chunk · สาย 2–1</option>
+          <option value="rootHunt">Root Hunt</option>
+          <option value="memory">Memory Fade</option>
+          <option value="connectNext">Connect · Position ถัดไป</option>
+          <option value="connectThree">Connect · 3 Positions</option>
+          <option value="connectAll">Connect · ทั้งคอ</option>
+          <option value="horizontal">Horizontal · ทุกสาย</option>
+        </select></label>
+        <button id="scaleFocusToggle" class="mini active">◉ SCALE FOCUS ON</button>
+        <button id="loopToggle" class="mini active">↻ LOOP ON</button>
+        <button id="flowToggle" class="mini">→ FLOW OFF</button>
+      </div>
+      <button id="quickPracticeBtn" class="setup-practice-btn"><span>▶</span><b>เริ่มฝึก</b></button>
+    </section>
+
+    <section class="studio" aria-label="Guitar note visualizer">
+      <div class="readout">
+        <div class="note-block">
+          <span id="noteName">—</span><sup id="octave"></sup>
+        </div>
+        <div class="pitch-data">
+          <strong id="frequency">0.0 Hz</strong>
+          <span id="pitchHint">เล่นโน้ตหนึ่งตัวเพื่อเริ่ม</span>
+        </div>
+        <div class="tuner">
+          <div class="tuner-scale"><i>-50</i><i>-25</i><i>0</i><i>+25</i><i>+50</i></div>
+          <div class="tuner-track"><b id="tunerNeedle"></b></div>
+          <span id="centsLabel">0 cents</span>
+        </div>
+      </div>
+
+      <div class="fretboard-wrap">
+        <div class="guitar-hit-banner" id="guitarHitBanner"><strong>PERFECT!</strong><span>+100 · 1× COMBO</span></div>
+        <div class="fret-numbers" id="fretNumbers"></div>
+        <div class="fretboard" id="fretboard" aria-label="คอกีตาร์ 17 เฟรต"></div>
+      </div>
+
+      <div class="legend">
+        <span><i class="dot active-dot"></i> โน้ตที่กำลังเล่น</span>
+        <span><i class="dot match-dot"></i> ตำแหน่งเดียวกัน</span>
+        <span class="tip">TIP: ใช้เสียง Clean เพื่อความแม่นยำสูงสุด</span>
+      </div>
+    </section>
+
+    <section class="trainer" id="trainer">
+      <div class="trainer-title">
+        <div><span class="eyebrow">SCALE TRAINER</span><h2>ฝึกแพตเทิร์นให้<br><em>เข้ากับจังหวะ</em></h2></div>
+        <p>เลือกสเกลและตำแหน่งที่ต้องการ เมโทรนอมจะพาคุณไล่โน้ตขึ้น–ลงทีละจังหวะ</p>
+      </div>
+      <div class="trainer-panel">
+        <div class="trainer-stage">
+          <div class="hit-effect" id="hitEffect"><strong>PERFECT!</strong><span>+100</span><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="count-ring" id="countRing"><span id="targetNote">A</span><small id="beatCount">READY</small></div>
+          <div class="trainer-info">
+            <span id="patternName">A Minor Pentatonic · Pattern 1</span>
+            <strong id="directionText">ASCENDING ↑</strong>
+            <div class="sequence" id="sequence"></div>
+            <div class="game-stats">
+              <span>SCORE <b id="scoreValue">0000</b></span>
+              <span>COMBO <b id="comboValue">0×</b></span>
+              <span>HIT <b id="accuracyValue">—</b></span>
+            </div>
+          </div>
+          <button id="practiceBtn" class="practice-btn">▶ เริ่มฝึก</button>
+        </div>
+        <div class="trainer-foot">
+          <span><b id="stepNow">0</b> / <span id="stepTotal">0</span> NOTES</span>
+          <span id="trainerFeedback">กดเริ่มฝึก แล้วเล่นตามจุดสีส้ม</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="curriculum" id="roadmap">
+      <div class="curriculum-head">
+        <div><span class="eyebrow">FRET ROADMAP</span><h2>จากโน้ตตัวแรก<br>ไปสู่เสียงของคุณเอง</h2></div>
+        <p>หลักสูตรนี้ไม่ได้ให้จำรูปทรงอย่างเดียว แต่จะพาเข้าใจว่าโน้ตมาจากไหน อยู่ในคีย์อย่างไร และนำไปแกะเพลงหรือสร้างโซโลได้อย่างไร</p>
+      </div>
+      <div class="roadmap-line" id="roadmapLine"></div>
+      <div class="lesson-grid" id="lessonGrid"></div>
+      <div class="method-note">
+        <span>หลักการของหลักสูตร</span>
+        <p>ฟัง → ร้องตาม → หาโน้ต → เล่นให้ตรงจังหวะ → นำไปใช้กับเพลงจริง ทุกบทต้องผ่านทั้งหู มือ และความเข้าใจ ไม่ใช่ความเร็วเพียงอย่างเดียว</p>
+      </div>
+    </section>
+
+    <section class="how">
+      <div><b>01</b><h2>เสียบ</h2><p>ต่อกีตาร์ผ่าน USB Audio Interface หรือใช้ไมโครโฟนฟังเสียงจากแอมป์</p></div>
+      <div><b>02</b><h2>อนุญาต</h2><p>เลือกช่องรับเสียง และอนุญาตให้เบราว์เซอร์เข้าถึงไมโครโฟน</p></div>
+      <div><b>03</b><h2>เล่น</h2><p>ดีดทีละโน้ต แล้วตำแหน่งทั้งหมดของโน้ตนั้นจะสว่างบนคอกีตาร์</p></div>
+    </section>
+  </main>
+
+  <footer><span>FRET LAB / PROTOTYPE 01</span><span>WEB AUDIO • REAL-TIME PITCH</span></footer>
+  <div id="toast" role="status"></div>
+  <script src="app.js?v=22"></script>
+</body>
+</html>
