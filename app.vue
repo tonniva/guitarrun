@@ -41,6 +41,12 @@ import leaderboardZh from './locales/leaderboard-ui/zh.json'
 import leaderboardJa from './locales/leaderboard-ui/ja.json'
 import leaderboardKo from './locales/leaderboard-ui/ko.json'
 import leaderboardEs from './locales/leaderboard-ui/es.json'
+import heroTh from './locales/hero-ui/th.json'
+import heroEn from './locales/hero-ui/en.json'
+import heroZh from './locales/hero-ui/zh.json'
+import heroJa from './locales/hero-ui/ja.json'
+import heroKo from './locales/hero-ui/ko.json'
+import heroEs from './locales/hero-ui/es.json'
 
 const rhythmText = {
   th:{use_tempo:'ใช้จังหวะ',tempo_on_hint:'เปิดเมโทรนอมและตรวจความตรงจังหวะ',tempo_off_hint:'เล่นตามความเร็วตัวเอง — ตรวจเฉพาะโน้ต',detected_note:'โน้ตที่ได้ยิน'},
@@ -51,9 +57,9 @@ const rhythmText = {
   es:{use_tempo:'Usar tempo',tempo_on_hint:'Metrónomo y puntuación de ritmo activados',tempo_off_hint:'Practica a tu ritmo; solo se evalúan las notas',detected_note:'Nota detectada'}
 }
 const messages = {
-  th: { ...th, ...curriculumTh, ...trainerTh, ...detailsTh, ...errorsTh, ...transitionTh, ...leaderboardTh, ...rhythmText.th }, en: { ...en, ...curriculumEn, ...trainerEn, ...detailsEn, ...errorsEn, ...transitionEn, ...leaderboardEn, ...rhythmText.en },
-  zh: { ...zh, ...curriculumZh, ...trainerZh, ...detailsZh, ...errorsZh, ...transitionZh, ...leaderboardZh, ...rhythmText.zh }, ja: { ...ja, ...curriculumJa, ...trainerJa, ...detailsJa, ...errorsJa, ...transitionJa, ...leaderboardJa, ...rhythmText.ja },
-  ko: { ...ko, ...curriculumKo, ...trainerKo, ...detailsKo, ...errorsKo, ...transitionKo, ...leaderboardKo, ...rhythmText.ko }, es: { ...es, ...curriculumEs, ...trainerEs, ...detailsEs, ...errorsEs, ...transitionEs, ...leaderboardEs, ...rhythmText.es }
+  th: { ...th, ...curriculumTh, ...trainerTh, ...detailsTh, ...errorsTh, ...transitionTh, ...leaderboardTh, ...heroTh, ...rhythmText.th }, en: { ...en, ...curriculumEn, ...trainerEn, ...detailsEn, ...errorsEn, ...transitionEn, ...leaderboardEn, ...heroEn, ...rhythmText.en },
+  zh: { ...zh, ...curriculumZh, ...trainerZh, ...detailsZh, ...errorsZh, ...transitionZh, ...leaderboardZh, ...heroZh, ...rhythmText.zh }, ja: { ...ja, ...curriculumJa, ...trainerJa, ...detailsJa, ...errorsJa, ...transitionJa, ...leaderboardJa, ...heroJa, ...rhythmText.ja },
+  ko: { ...ko, ...curriculumKo, ...trainerKo, ...detailsKo, ...errorsKo, ...transitionKo, ...leaderboardKo, ...heroKo, ...rhythmText.ko }, es: { ...es, ...curriculumEs, ...trainerEs, ...detailsEs, ...errorsEs, ...transitionEs, ...leaderboardEs, ...heroEs, ...rhythmText.es }
 }
 const locale = ref('th')
 const runtimeConfig = useRuntimeConfig()

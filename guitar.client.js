@@ -19,6 +19,7 @@ let freePlay = true;
 let inputRms = 0, noiseFloor = Number(localStorage.getItem('fret-noise-floor')) || .004;
 let inputThreshold = Math.max(.008, noiseFloor * 3.2), calibrationState = 'idle', calibrationSamples = [];
 let scoringMidiCandidate = null, scoringMidiFrames = 0, lastScoredMidi = null;
+let attackSerial = 0, processedAttackSerial = 0, lastAttackSignalAt = 0;
 const RECORDS_KEY = 'fret-trainer-records-v1';
 const SCALES = {
   major: { name:'Major', intervals:[0,2,4,5,7,9,11] },
@@ -52,6 +53,13 @@ function showNote(pitch, confidence = 1, scoringPitch = pitch) {
   const pitchClass = ((midi % 12) + 12) % 12;
   const octave = Math.floor(midi / 12) - 1;
   const now = performance.now();
+  if (processedAttackSerial !== attackSerial) {
+    processedAttackSerial = attackSerial;
+    scoringMidiCandidate = null;
+    scoringMidiFrames = 0;
+    lastScoredMidi = null;
+    lastAttack = {midi, time:now};
+  }
   const isNewAttack = lastMidi === null || midi !== lastMidi || now - lastSoundAt > 140;
   lastSoundAt = now;
   if (isNewAttack) {
@@ -65,7 +73,8 @@ function showNote(pitch, confidence = 1, scoringPitch = pitch) {
   const rawMidi = Math.round(69 + 12 * Math.log2(scoringPitch / 440));
   if (rawMidi === scoringMidiCandidate) scoringMidiFrames++;
   else { scoringMidiCandidate = rawMidi; scoringMidiFrames = 1; }
-  if (scoringMidiFrames >= 4 && rawMidi !== lastScoredMidi) {
+  const stableFramesRequired = freePlay ? 2 : 4;
+  if (scoringMidiFrames >= stableFramesRequired && rawMidi !== lastScoredMidi) {
     evaluateHit(rawMidi, now);
     if (hitRegistered || beatAttempt?.type === 'wrong') lastScoredMidi = rawMidi;
   }
@@ -155,7 +164,7 @@ function registerHit(timingError, hitWindow) {
   els.hitEffect.querySelector('span').textContent = `+${points}`;
   els.hitEffect.classList.remove('show'); void els.hitEffect.offsetWidth; els.hitEffect.classList.add('show');
   els.guitarHitBanner.querySelector('strong').textContent = freePlay ? t('correct','CORRECT!') : perfect ? 'PERFECT!' : 'GOOD!';
-  if (freePlay) setTimeout(() => { if (practiceTimer && hitRegistered) practiceBeat(); }, 280);
+  if (freePlay) setTimeout(() => { if (practiceTimer && hitRegistered) practiceBeat(); }, 100);
   els.guitarHitBanner.querySelector('span').textContent = `+${points} · ${combo}× COMBO`;
   els.guitarHitBanner.classList.remove('show'); void els.guitarHitBanner.offsetWidth; els.guitarHitBanner.classList.add('show');
   const panel = document.querySelector('.trainer-panel'); panel.classList.remove('hit'); void panel.offsetWidth; panel.classList.add('hit');
@@ -646,7 +655,15 @@ function detectPitch(buffer, sampleRate) {
   let rms = 0;
   for (const v of buffer) rms += v * v;
   rms = Math.sqrt(rms / buffer.length);
+  const previousRms = inputRms;
   inputRms = rms;
+  const signalNow = performance.now();
+  const crossedThreshold = previousRms < inputThreshold * .8 && rms >= inputThreshold;
+  const sharpRise = rms >= inputThreshold && rms > previousRms * 1.45 && rms - previousRms > .004;
+  if ((crossedThreshold || sharpRise) && signalNow - lastAttackSignalAt > 75) {
+    attackSerial++;
+    lastAttackSignalAt = signalNow;
+  }
   els.levelBar.style.width = `${Math.min(100, rms * 520)}%`;
   if (els.calibrationMeter) els.calibrationMeter.style.width = `${Math.min(100, rms * 700)}%`;
   if (calibrationState === 'sampling') calibrationSamples.push(rms);
@@ -692,7 +709,7 @@ async function connect(deviceId) {
     audioContext ||= new (window.AudioContext || window.webkitAudioContext)();
     await audioContext.resume();
     analyser = audioContext.createAnalyser();
-    analyser.fftSize = 4096;
+    analyser.fftSize = 2048;
     audioContext.createMediaStreamSource(stream).connect(analyser);
     cancelAnimationFrame(raf);
     listen();
