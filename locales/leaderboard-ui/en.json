@@ -21,5 +21,8 @@
   "empty_title": "The stage is open",
   "empty_desc": "Start practicing and become the first guitarist on the leaderboard.",
   "no_ranking": "No records yet. Be the first to practice.",
-  "ranking_unavailable": "Unable to connect to the leaderboard."
+  "ranking_unavailable": "Unable to connect to the leaderboard.",
+  "country_unknown": "Country not set",
+  "practice_unknown": "No practice history yet",
+  "select_country": "Select country"
 }

@@ -47,19 +47,23 @@ import heroZh from './locales/hero-ui/zh.json'
 import heroJa from './locales/hero-ui/ja.json'
 import heroKo from './locales/hero-ui/ko.json'
 import heroEs from './locales/hero-ui/es.json'
+import runtimeTh from './locales/runtime-ui/th.json'
+import runtimeEn from './locales/runtime-ui/en.json'
+import runtimeZh from './locales/runtime-ui/zh.json'
+import runtimeJa from './locales/runtime-ui/ja.json'
+import runtimeKo from './locales/runtime-ui/ko.json'
+import runtimeEs from './locales/runtime-ui/es.json'
+import rhythmTh from './locales/rhythm-ui/th.json'
+import rhythmEn from './locales/rhythm-ui/en.json'
+import rhythmZh from './locales/rhythm-ui/zh.json'
+import rhythmJa from './locales/rhythm-ui/ja.json'
+import rhythmKo from './locales/rhythm-ui/ko.json'
+import rhythmEs from './locales/rhythm-ui/es.json'
 
-const rhythmText = {
-  th:{use_tempo:'ใช้จังหวะ',tempo_on_hint:'เปิดเมโทรนอมและตรวจความตรงจังหวะ',tempo_off_hint:'เล่นตามความเร็วตัวเอง — ตรวจเฉพาะโน้ต',detected_note:'โน้ตที่ได้ยิน'},
-  en:{use_tempo:'Use tempo',tempo_on_hint:'Metronome and timing score enabled',tempo_off_hint:'Play at your pace — note accuracy only',detected_note:'Detected note'},
-  zh:{use_tempo:'使用节拍',tempo_on_hint:'启用节拍器和节奏评分',tempo_off_hint:'按自己的速度练习，只检查音符',detected_note:'检测到的音符'},
-  ja:{use_tempo:'テンポを使用',tempo_on_hint:'メトロノームとタイミング判定をオン',tempo_off_hint:'自分のペースで音程だけを判定',detected_note:'検出した音'},
-  ko:{use_tempo:'템포 사용',tempo_on_hint:'메트로놈과 타이밍 점수 사용',tempo_off_hint:'내 속도로 음정만 확인',detected_note:'감지된 음'},
-  es:{use_tempo:'Usar tempo',tempo_on_hint:'Metrónomo y puntuación de ritmo activados',tempo_off_hint:'Practica a tu ritmo; solo se evalúan las notas',detected_note:'Nota detectada'}
-}
 const messages = {
-  th: { ...th, ...curriculumTh, ...trainerTh, ...detailsTh, ...errorsTh, ...transitionTh, ...leaderboardTh, ...heroTh, ...rhythmText.th }, en: { ...en, ...curriculumEn, ...trainerEn, ...detailsEn, ...errorsEn, ...transitionEn, ...leaderboardEn, ...heroEn, ...rhythmText.en },
-  zh: { ...zh, ...curriculumZh, ...trainerZh, ...detailsZh, ...errorsZh, ...transitionZh, ...leaderboardZh, ...heroZh, ...rhythmText.zh }, ja: { ...ja, ...curriculumJa, ...trainerJa, ...detailsJa, ...errorsJa, ...transitionJa, ...leaderboardJa, ...heroJa, ...rhythmText.ja },
-  ko: { ...ko, ...curriculumKo, ...trainerKo, ...detailsKo, ...errorsKo, ...transitionKo, ...leaderboardKo, ...heroKo, ...rhythmText.ko }, es: { ...es, ...curriculumEs, ...trainerEs, ...detailsEs, ...errorsEs, ...transitionEs, ...leaderboardEs, ...heroEs, ...rhythmText.es }
+  th: { ...th, ...curriculumTh, ...trainerTh, ...detailsTh, ...errorsTh, ...transitionTh, ...leaderboardTh, ...heroTh, ...runtimeTh, ...rhythmTh }, en: { ...en, ...curriculumEn, ...trainerEn, ...detailsEn, ...errorsEn, ...transitionEn, ...leaderboardEn, ...heroEn, ...runtimeEn, ...rhythmEn },
+  zh: { ...zh, ...curriculumZh, ...trainerZh, ...detailsZh, ...errorsZh, ...transitionZh, ...leaderboardZh, ...heroZh, ...runtimeZh, ...rhythmZh }, ja: { ...ja, ...curriculumJa, ...trainerJa, ...detailsJa, ...errorsJa, ...transitionJa, ...leaderboardJa, ...heroJa, ...runtimeJa, ...rhythmJa },
+  ko: { ...ko, ...curriculumKo, ...trainerKo, ...detailsKo, ...errorsKo, ...transitionKo, ...leaderboardKo, ...heroKo, ...runtimeKo, ...rhythmKo }, es: { ...es, ...curriculumEs, ...trainerEs, ...detailsEs, ...errorsEs, ...transitionEs, ...leaderboardEs, ...heroEs, ...runtimeEs, ...rhythmEs }
 }
 const locale = ref('th')
 const runtimeConfig = useRuntimeConfig()
@@ -71,14 +75,18 @@ const languages = [
   { code: 'ko', flag: '🇰🇷', name: '한국어' },
   { code: 'es', flag: '🇪🇸', name: 'Español' }
 ]
-const tr = key => messages[locale.value]?.[key] || messages.en[key] || key
+const translate = (key, vars = {}) => {
+  const value = messages[locale.value]?.[key] ?? messages.en[key] ?? key
+  return typeof value === 'string' ? value.replace(/\{(\w+)\}/g, (_, name) => vars[name] ?? `{${name}}`) : value
+}
+const tr = translate
 
 function applyLanguage(code) {
   if (!messages[code]) return
   locale.value = code
   document.documentElement.lang = code
   localStorage.setItem('fret-language', code)
-  window.__FRET_T = key => messages[locale.value]?.[key] || messages.en[key] || key
+  window.__FRET_T = (key, vars) => translate(key, vars)
   window.dispatchEvent(new CustomEvent('fret-language-change', { detail: code }))
 }
 
@@ -98,7 +106,7 @@ watch(locale, code => {
   <div class="noise" />
   <header class="topbar">
     <a class="brand" href="#" aria-label="GuitarRun home"><img src="/brand/guitarrun-logo.svg" alt="GuitarRun"></a>
-    <div class="header-actions"><button id="profileButton" class="profile-button"><span id="profileAvatar">GR</span><b id="profileLabel">เข้าสู่ระบบ</b></button><label class="language-menu" :aria-label="tr('language')"><select v-model="locale"><option v-for="language in languages" :key="language.code" :value="language.code">{{ language.flag }} {{ language.name }}</option></select></label><button id="headerConnect" class="header-connect">⌁ {{ tr('connect') }}</button><div class="status-pill"><i id="statusDot" /><span id="statusText">{{ tr('status_offline') }}</span></div></div>
+    <div class="header-actions"><button id="profileButton" class="profile-button"><span id="profileAvatar">GR</span><b id="profileLabel">{{ tr('sign_in') }}</b></button><label class="language-menu" :aria-label="tr('language')"><select v-model="locale"><option v-for="language in languages" :key="language.code" :value="language.code">{{ language.flag }} {{ language.name }}</option></select></label><button id="headerConnect" class="header-connect">⌁ {{ tr('connect') }}</button><div class="status-pill"><i id="statusDot" /><span id="statusText">{{ tr('status_offline') }}</span></div></div>
   </header>
   <button id="setupToggle" class="setup-fab" aria-expanded="false" aria-controls="scale-setup"><span>⚙</span><b id="setupSummary">C · Major · P1</b></button>
 
@@ -114,7 +122,7 @@ watch(locale, code => {
       <p class="privacy">{{ tr('privacy') }}</p>
     </section>
 
-    <section id="scale-setup" class="scale-toolbar" aria-label="ตั้งค่าการฝึกสเกล">
+    <section id="scale-setup" class="scale-toolbar" :aria-label="tr('scale_setup_label')">
       <div class="scale-toolbar-head"><span class="label">{{ tr('setup') }}</span><span>{{ tr('setup_hint') }}</span><button id="setupClose" aria-label="Close Scale Setup">×</button></div>
       <div class="trainer-controls">
         <label>{{ tr('key') }}<select id="keySelect" /></label>
@@ -125,7 +133,7 @@ watch(locale, code => {
         <label class="input-control">{{ tr('live_input') }}<select id="inputSelect" aria-label="Audio input" disabled><option>Default audio input</option></select><span class="compact-level"><i id="levelBar" /></span></label>
       </div>
       <div class="fixed-mode-controls">
-        <label>{{ tr('lesson_mode') }}<select id="lessonMode" class="mini-select" aria-label="Lesson mode"><option value="full">Full Pattern</option><option value="marathon3nps" selected>3NPS Marathon · P1–P7</option><option value="chunkLow">Chunk · 6–5</option><option value="chunkMid">Chunk · 4–3</option><option value="chunkHigh">Chunk · 2–1</option><option value="rootHunt">Root Hunt</option><option value="memory">Memory Fade</option><option value="connectNext">Connect · Next Position</option><option value="connectThree">Connect · 3 Positions</option><option value="connectAll">Connect · All Positions</option><option value="horizontal">Horizontal · All Strings</option></select></label>
+        <label>{{ tr('lesson_mode') }}<select id="lessonMode" class="mini-select" aria-label="Lesson mode"><option value="full">Full Pattern</option><option value="marathon3nps" selected>3NPS Marathon · P1–P7</option><option value="chordOpen">Chord Coach · Open Chords</option><option value="chunkLow">Chunk · 6–5</option><option value="chunkMid">Chunk · 4–3</option><option value="chunkHigh">Chunk · 2–1</option><option value="rootHunt">Root Hunt</option><option value="memory">Memory Fade</option><option value="connectNext">Connect · Next Position</option><option value="connectThree">Connect · 3 Positions</option><option value="connectAll">Connect · All Positions</option><option value="horizontal">Horizontal · All Strings</option></select></label>
         <button id="scaleFocusToggle" class="mini active">◉ SCALE FOCUS ON</button>
         <button id="loopToggle" class="mini active">↻ LOOP ON</button>
         <button id="flowToggle" class="mini">→ FLOW OFF</button>
@@ -137,15 +145,26 @@ watch(locale, code => {
     <section class="studio" aria-label="Guitar note visualizer">
       <div class="readout">
         <div id="noteBlock" class="note-block"><small>{{ tr('detected_note') }}</small><span id="noteName">LIVE</span><sup id="octave" /></div>
-        <div class="pitch-data"><strong id="frequency">0.0 Hz</strong><span id="pitchHint">เล่นโน้ตหนึ่งตัวเพื่อเริ่ม</span></div>
+        <div class="pitch-data"><strong id="frequency">0.0 Hz</strong><span id="pitchHint">{{ tr('play_one_note') }}</span></div>
+        <button id="readoutConnect" class="readout-connect"><span>⌁</span> {{ tr('connect_guitar') }}</button>
         <div class="tuner"><div class="tuner-scale"><i>-50</i><i>-25</i><i>0</i><i>+25</i><i>+50</i></div><div class="tuner-track"><b id="tunerNeedle" /></div><span id="centsLabel">0 cents</span></div>
       </div>
-      <div class="fretboard-wrap"><div id="guitarHitBanner" class="guitar-hit-banner"><strong>PERFECT!</strong><span>+100 · 1× COMBO</span></div><div id="positionGuide" class="position-guide"><div class="position-guide-head"><small>{{ tr('next_starts_in') }}</small><strong>P2</strong><span id="positionGuideRemaining">5</span></div><div class="next-pattern-label">{{ tr('ghost_on_fretboard') }}</div><div class="next-pattern-detail"><b id="nextRootDetail">ROOT C</b><span id="nextStartDetail">START C · STRING 6 · FRET 8</span></div><i><em id="positionGuideBar" /></i></div><div id="positionTransition" class="position-transition"><small>{{ tr('position_success') }}</small><strong>P1 ✓</strong><span>{{ tr('keep_combo') }}</span></div><div id="fretNumbers" class="fret-numbers" /><div id="fretboard" class="fretboard" aria-label="คอกีตาร์ 17 เฟต" /></div>
-      <div class="legend"><span><i class="dot active-dot" /> โน้ตที่กำลังเล่น</span><span><i class="dot match-dot" /> ตำแหน่งเดียวกัน</span><span class="tip">TIP: ใช้เสียง Clean เพื่อความแม่นยำสูงสุด</span></div>
+      <div class="fretboard-wrap"><div id="guitarHitBanner" class="guitar-hit-banner"><strong>PERFECT!</strong><span>+100 · 1× COMBO</span></div><div id="positionGuide" class="position-guide"><div class="position-guide-head"><small>{{ tr('next_starts_in') }}</small><strong>P2</strong><span id="positionGuideRemaining">5</span></div><div class="next-pattern-label">{{ tr('ghost_on_fretboard') }}</div><div class="next-pattern-detail"><b id="nextRootDetail">ROOT C</b><span id="nextStartDetail">START C · STRING 6 · FRET 8</span></div><i><em id="positionGuideBar" /></i></div><div id="positionTransition" class="position-transition"><small>{{ tr('position_success') }}</small><strong>P1 ✓</strong><span>{{ tr('keep_combo') }}</span></div><div id="fretNumbers" class="fret-numbers" /><div id="fretboard" class="fretboard" :aria-label="tr('fretboard_label')" /></div>
+      <div class="trainer-panel">
+        <div class="trainer-stage">
+          <div id="countdownOverlay" class="countdown-overlay"><small>{{ tr('get_ready') }}</small><strong id="countdownValue">3</strong></div>
+          <div id="hitEffect" class="hit-effect"><strong>PERFECT!</strong><span>+100</span><i /><i /><i /><i /><i /><i /></div>
+          <div id="countRing" class="count-ring"><span id="targetNote">A</span><small id="beatCount">{{ tr('ready') }}</small></div>
+          <div class="trainer-info"><span id="patternName">A Minor Pentatonic · Pattern 1</span><strong id="directionText">ASCENDING ↑</strong><div id="sequence" class="sequence" /><div class="game-stats"><span>{{ tr('score') }} <b id="scoreValue">0000</b></span><span>{{ tr('combo') }} <b id="comboValue">0×</b></span><span>{{ tr('hit') }} <b id="accuracyValue">—</b></span></div></div>
+          <button id="practiceBtn" class="practice-btn">▶ {{ tr('start_practice') }}</button>
+        </div>
+        <div class="trainer-foot"><span><b id="stepNow">0</b> / <span id="stepTotal">0</span> NOTES</span><span id="trainerFeedback">{{ tr('trainer_feedback') }}</span></div>
+      </div>
+      <div class="legend"><span><i class="dot active-dot" /> {{ tr('active_note') }}</span><span><i class="dot match-dot" /> {{ tr('same_position') }}</span><span class="tip">{{ tr('clean_tone_tip') }}</span></div>
     </section>
 
     <section id="trainer" class="trainer">
-      <div class="trainer-title"><div><span class="eyebrow">SCALE TRAINER</span><h2>ฝึกแพตเทิร์นให้<br><em>เข้ากับจังหวะ</em></h2></div><p>เลือกสเกลและตำแหน่งที่ต้องการ เมโทรนอมจะพาคุณไล่โน้ตขึ้น–ลงทีละจังหวะ</p></div>
+      <div class="trainer-title"><div><span class="eyebrow">SCALE TRAINER</span><h2>{{ tr('scale_trainer_title') }}</h2></div><p>{{ tr('scale_trainer_desc') }}</p></div>
       <div class="performance-board">
         <div class="performance-live">
           <div class="performance-head"><span>{{ tr('live_performance') }}</span><b id="positionProgress">POSITION 1 /
@@ -168,17 +187,6 @@ watch(locale, code => {
           <div id="recordBoard" class="record-list" />
         </div>
       </div>
-      <div class="trainer-panel">
-        <div class="trainer-stage">
-          <div id="countdownOverlay" class="countdown-overlay"><small>{{ tr('get_ready') }}</small><strong id="countdownValue">3</strong></div>
-          <div id="hitEffect" class="hit-effect"><strong>PERFECT!</strong><span>+100</span><i /><i /><i /><i /><i /><i /></div>
-          <div id="countRing" class="count-ring"><span id="targetNote">A</span><small id="beatCount">{{ tr('ready') }}</small></div>
-          <div class="trainer-info"><span id="patternName">A Minor Pentatonic · Pattern 1</span><strong id="directionText">ASCENDING ↑</strong><div id="sequence" class="sequence" /><div class="game-stats"><span>{{ tr('score') }} <b id="scoreValue">0000</b></span><span>{{ tr('combo') }} <b id="comboValue">0×</b></span><span>{{ tr('hit') }} <b id="accuracyValue">—</b></span></div></div>
-          <button id="practiceBtn" class="practice-btn">▶ {{ tr('start_practice') }}</button>
-        </div>
-        <div class="trainer-foot"><span><b id="stepNow">0</b> / <span id="stepTotal">0</span> NOTES</span><span id="trainerFeedback">{{ tr('trainer_feedback') }}</span></div>
-      </div>
-   
     </section>
 
     <section id="communityLeaderboard" class="community-leaderboard">
@@ -199,7 +207,7 @@ watch(locale, code => {
   </main>
 
   <footer><span>FRET LAB / NUXT</span><span>WEB AUDIO • REAL-TIME PITCH</span></footer>
-  <div id="profileModal" class="profile-modal" aria-hidden="true"><div class="profile-card"><button id="profileClose" class="profile-close">×</button><span class="eyebrow">GUITARRUN PROFILE</span><div id="signedOutProfile"><h2>เก็บทุกก้าวที่คุณฝึก</h2><p>เข้าสู่ระบบด้วย Google เพื่อบันทึกเวลาฝึก คะแนน และอันดับของคุณ</p><div id="googleSignIn"></div><p id="googleSetupHint" class="google-setup-hint"></p></div><div id="signedInProfile" hidden><div class="profile-identity"><img id="profileImage" alt="Profile"><div><h2 id="profileName">Guitar Player</h2><span id="profileEmail"></span></div></div><label class="profile-upload">เปลี่ยนรูปโปรไฟล์<input id="profileImageInput" type="file" accept="image/png,image/jpeg,image/webp"></label><div class="profile-stats"><span><b id="profilePracticeTime">0h</b>เวลาฝึกจริง</span><span><b id="profileNotes">0</b>โน้ต</span><span><b id="profileBestCombo">0×</b>คอมโบสูงสุด</span></div><button id="logoutButton" class="logout-button">ออกจากระบบ</button></div></div></div>
+  <div id="profileModal" class="profile-modal" aria-hidden="true"><div class="profile-card"><button id="profileClose" class="profile-close">×</button><span class="eyebrow">GUITARRUN PROFILE</span><div id="signedOutProfile"><h2>{{ tr('profile_tagline') }}</h2><p>{{ tr('profile_signin_desc') }}</p><div id="googleSignIn"></div><p id="googleSetupHint" class="google-setup-hint"></p></div><div id="signedInProfile" hidden><div class="profile-identity"><img id="profileImage" alt="Profile"><div><h2 id="profileName">Guitar Player</h2><span id="profileEmail"></span></div></div><label class="profile-country"><span>{{ tr('your_country') }}</span><select id="profileCountry" :aria-label="tr('your_country')" /></label><label class="profile-upload">{{ tr('change_profile_photo') }}<input id="profileImageInput" type="file" accept="image/png,image/jpeg,image/webp"></label><div class="profile-stats"><span><b id="profilePracticeTime">0h</b>{{ tr('real_practice_time') }}</span><span><b id="profileNotes">0</b>{{ tr('notes_label') }}</span><span><b id="profileBestCombo">0×</b>{{ tr('best_combo_label') }}</span></div><button id="logoutButton" class="logout-button">{{ tr('sign_out') }}</button></div></div></div>
   <div id="calibrationModal" class="calibration-modal" aria-hidden="true">
     <div class="calibration-card" role="dialog" aria-modal="true" :aria-label="tr('calibrate')">
       <button id="calibrationClose" class="calibration-close" :aria-label="tr('close')">×</button>

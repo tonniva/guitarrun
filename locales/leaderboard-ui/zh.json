@@ -21,5 +21,8 @@
   "empty_title": "榜单等待第一位玩家",
   "empty_desc": "开始练习，成为排行榜上的第一位吉他手。",
   "no_ranking": "暂无记录，开始第一次练习吧。",
-  "ranking_unavailable": "无法连接排行榜。"
+  "ranking_unavailable": "无法连接排行榜。",
+  "country_unknown": "未设置国家或地区",
+  "practice_unknown": "暂无练习记录",
+  "select_country": "选择国家或地区"
 }

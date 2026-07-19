@@ -21,5 +21,8 @@
   "empty_title": "El escenario está libre",
   "empty_desc": "Empieza a practicar y sé el primer guitarrista del ranking.",
   "no_ranking": "Aún no hay registros. Sé el primero en practicar.",
-  "ranking_unavailable": "No se pudo conectar con el ranking."
+  "ranking_unavailable": "No se pudo conectar con el ranking.",
+  "country_unknown": "País sin especificar",
+  "practice_unknown": "Aún no hay historial de práctica",
+  "select_country": "Seleccionar país"
 }

@@ -8,7 +8,6 @@ export default defineNuxtConfig({
       htmlAttrs: { lang: 'th' },
       title: 'GuitarRun — Real-time Guitar Trainer',
       link: [{ rel: 'icon', type: 'image/svg+xml', href: '/brand/guitarrun-icon.svg' }],
-      script: [{ src: 'https://accounts.google.com/gsi/client', async: true, defer: true }],
       meta: [
         { name: 'viewport', content: 'width=device-width, initial-scale=1.0' },
         { name: 'theme-color', content: '#080b10' }

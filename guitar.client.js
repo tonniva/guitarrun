@@ -1,9 +1,9 @@
 import { CURRICULA } from './locales/curriculum/index.js';
 
 const NOTE_NAMES = ['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];
-const t = (key, fallback = key) => window.__FRET_T?.(key) || fallback;
+const t = (key, vars) => window.__FRET_T?.(key, vars) || key;
 const OPEN_MIDI = [64, 59, 55, 50, 45, 40]; // visual: high E → low E
-const els = Object.fromEntries(['connectBtn','headerConnect','setupToggle','setupClose','setupSummary','quickPracticeBtn','demoBtn','inputSelect','statusDot','statusText','levelBar','noteBlock','noteName','octave','frequency','pitchHint','tunerNeedle','centsLabel','fretboard','fretNumbers','toast','keySelect','scaleSelect','patternSelect','bpmSlider','bpmValue','noteValue','rhythmEnabled','practiceBtn','targetNote','beatCount','countRing','patternName','directionText','sequence','stepNow','stepTotal','trainerFeedback','lessonMode','loopToggle','flowToggle','scaleFocusToggle','hitEffect','guitarHitBanner','positionGuide','positionGuideRemaining','positionGuideBar','nextRootDetail','nextStartDetail','positionTransition','countdownOverlay','countdownValue','scoreValue','comboValue','accuracyValue','perfectCount','goodCount','missCount','wrongCount','timingCount','noHitCount','perfectBar','goodBar','missBar','maxComboValue','sessionScore','positionProgress','recordBoard','roadmapLine','lessonGrid','calibrateBtn','calibrationModal','calibrationClose','calibrationStart','calibrationInstruction','calibrationMeter','calibrationStatus','calibrationDetail'].map(id => [id, document.getElementById(id)]));
+const els = Object.fromEntries(['connectBtn','headerConnect','readoutConnect','setupToggle','setupClose','setupSummary','quickPracticeBtn','demoBtn','inputSelect','statusDot','statusText','levelBar','noteBlock','noteName','octave','frequency','pitchHint','tunerNeedle','centsLabel','fretboard','fretNumbers','toast','keySelect','scaleSelect','patternSelect','bpmSlider','bpmValue','noteValue','rhythmEnabled','practiceBtn','targetNote','beatCount','countRing','patternName','directionText','sequence','stepNow','stepTotal','trainerFeedback','lessonMode','loopToggle','flowToggle','scaleFocusToggle','hitEffect','guitarHitBanner','positionGuide','positionGuideRemaining','positionGuideBar','nextRootDetail','nextStartDetail','positionTransition','countdownOverlay','countdownValue','scoreValue','comboValue','accuracyValue','perfectCount','goodCount','missCount','wrongCount','timingCount','noHitCount','perfectBar','goodBar','missBar','maxComboValue','sessionScore','positionProgress','recordBoard','roadmapLine','lessonGrid','calibrateBtn','calibrationModal','calibrationClose','calibrationStart','calibrationInstruction','calibrationMeter','calibrationStatus','calibrationDetail'].map(id => [id, document.getElementById(id)]));
 
 let audioContext, analyser, stream, raf, demoTimer, lastMidi = null;
 let smoothedPitch = 0;
@@ -27,6 +27,12 @@ const SCALES = {
   majorPenta: { name:'Major Pentatonic', intervals:[0,2,4,7,9] },
   minorPenta: { name:'Minor Pentatonic', intervals:[0,3,5,7,10] }
 };
+const OPEN_CHORDS = [
+  {name:'C',root:0,frets:[0,1,0,2,3,null]}, {name:'G',root:7,frets:[3,0,0,0,2,3]},
+  {name:'D',root:2,frets:[2,3,2,0,null,null]}, {name:'A',root:9,frets:[0,2,2,2,0,null]},
+  {name:'E',root:4,frets:[0,0,1,2,2,0]}, {name:'Am',root:9,frets:[0,1,2,2,0,null]},
+  {name:'Em',root:4,frets:[0,0,0,2,2,0]}, {name:'Dm',root:2,frets:[1,3,2,0,null,null]}
+];
 
 function buildFretboard() {
   els.fretNumbers.innerHTML = Array.from({length:18}, (_,f) => `<span>${f === 0 ? 'OPEN' : f}</span>`).join('');
@@ -85,7 +91,7 @@ function showNote(pitch, confidence = 1, scoringPitch = pitch) {
   els.frequency.textContent = `${pitch.toFixed(1)} Hz`;
   els.centsLabel.textContent = `${cents > 0 ? '+' : ''}${cents} cents`;
   els.tunerNeedle.style.left = `${50 + cents}%`;
-  els.pitchHint.textContent = Math.abs(cents) < 6 ? 'ตรงเสียงแล้ว' : cents < 0 ? 'เสียงต่ำไปเล็กน้อย' : 'เสียงสูงไปเล็กน้อย';
+  els.pitchHint.textContent = Math.abs(cents) < 6 ? t('pitch_ready') : cents < 0 ? t('pitch_low') : t('pitch_high');
 
   document.querySelectorAll('.cell').forEach(c => {
     const isAllowed = !scaleFocus || c.classList.contains('scale-note');
@@ -102,17 +108,17 @@ function showNote(pitch, confidence = 1, scoringPitch = pitch) {
   if (!practiceTimer) {
     if (scaleFocus) {
       els.pitchHint.textContent += candidates.length
-        ? ` · เฉพาะ ${els.patternName.textContent}`
-        : ' · โน้ตนี้อยู่นอกแพตเทิร์น';
+        ? ` · ${t('pattern_only',{pattern:els.patternName.textContent})}`
+        : ` · ${t('outside_pattern')}`;
     } else if (exactCandidates.length > 1) {
-      els.pitchHint.textContent += ` · เป็นไปได้ ${exactCandidates.length} ตำแหน่ง`;
+      els.pitchHint.textContent += ` · ${t('possible_positions',{count:exactCandidates.length})}`;
     }
   }
   lastMidi = midi;
 }
 
 function clearNote() {
-  els.pitchHint.textContent = stream || demoTimer ? 'กำลังฟัง…' : 'เล่นโน้ตหนึ่งตัวเพื่อเริ่ม';
+  els.pitchHint.textContent = stream || demoTimer ? t('listening') : t('play_one_note');
   if (performance.now() - lastSoundAt > 140) {
     lastMidi = null;
     scoringMidiCandidate = null;
@@ -150,6 +156,30 @@ function evaluateHit(midi, time) {
   else beatAttempt = {type:time < lastBeatAt ? 'early' : 'late',timingError};
 }
 
+function playNoteShatter(cell) {
+  cell.querySelectorAll('.note-shatter-particle').forEach(particle => particle.remove());
+  cell.classList.remove('note-burst');
+  void cell.offsetWidth;
+  cell.classList.add('note-burst');
+
+  for (let index = 0; index < 10; index += 1) {
+    const angle = ((Math.PI * 2) / 10) * index + (Math.random() - 0.5) * 0.28;
+    const distance = 22 + Math.random() * 20;
+    const particle = document.createElement('i');
+    particle.className = 'note-shatter-particle';
+    particle.style.setProperty('--dx', `${Math.cos(angle) * distance}px`);
+    particle.style.setProperty('--dy', `${Math.sin(angle) * distance}px`);
+    particle.style.setProperty('--rotate', `${Math.round(Math.random() * 240 - 120)}deg`);
+    particle.style.setProperty('--delay', `${index * 7}ms`);
+    cell.appendChild(particle);
+  }
+
+  window.setTimeout(() => {
+    cell.classList.remove('note-burst');
+    cell.querySelectorAll('.note-shatter-particle').forEach(particle => particle.remove());
+  }, 680);
+}
+
 function registerHit(timingError, hitWindow) {
   if (hitRegistered) return;
   hitRegistered = true; hits++; combo++;
@@ -168,8 +198,12 @@ function registerHit(timingError, hitWindow) {
   els.guitarHitBanner.querySelector('span').textContent = `+${points} · ${combo}× COMBO`;
   els.guitarHitBanner.classList.remove('show'); void els.guitarHitBanner.offsetWidth; els.guitarHitBanner.classList.add('show');
   const panel = document.querySelector('.trainer-panel'); panel.classList.remove('hit'); void panel.offsetWidth; panel.classList.add('hit');
-  document.querySelector('.cell.target-note')?.classList.add('note-hit');
-  els.trainerFeedback.textContent = perfect ? 'ตรงโน้ตและตรงจังหวะ!' : 'โน้ตถูก — เกือบตรงจังหวะ';
+  const hitCell = document.querySelector('.cell.target-note');
+  if (hitCell) {
+    hitCell.classList.add('note-hit');
+    playNoteShatter(hitCell);
+  }
+  els.trainerFeedback.textContent = perfect ? t('hit_perfect_feedback') : t('hit_good_feedback');
   updateGameStats();
 }
 
@@ -250,10 +284,34 @@ function renderRecordBoard() {
     const [root,scaleKey] = key.split('-');
     const scale = SCALES[scaleKey];
     return `<div class="record-row"><b>#${index+1}</b><span>${NOTE_NAMES[Number(root)]} ${scale?.name || scaleKey}<small>P1 → P${record.position} · ${record.accuracy}% ACC</small></span><strong>${String(record.score).padStart(4,'0')}<small>${record.maxCombo}× COMBO</small></strong></div>`;
-  }).join('') : '<div class="record-empty">ยังไม่มีสถิติ · เริ่ม 3NPS Marathon รอบแรก</div>';
+  }).join('') : `<div class="record-empty">${t('no_records')}</div>`;
+}
+
+function createChordPattern() {
+  const chord = OPEN_CHORDS[Number(els.patternSelect.value || 0)] || OPEN_CHORDS[0];
+  const notes = chord.frets.map((fret,string) => fret === null ? null : ({string,fret,midi:OPEN_MIDI[string]+fret,name:NOTE_NAMES[(OPEN_MIDI[string]+fret)%12],position:0})).filter(Boolean).sort((a,b)=>b.string-a.string);
+  practiceSequence = [...notes,...notes.slice(0,-1).reverse()];
+  practiceStep = 0;
+  document.body.classList.add('chord-mode');
+  document.querySelectorAll('.cell').forEach(cell => {
+    cell.classList.remove('scale-note','root-note','shift-note','target-note','chord-muted');
+    const string=Number(cell.dataset.string),fret=Number(cell.dataset.fret),shown=notes.some(note=>note.string===string&&note.fret===fret);
+    if(shown) cell.classList.add('scale-note');
+    if(shown&&Number(cell.dataset.pitchClass)===chord.root) cell.classList.add('root-note');
+    if(fret===0&&chord.frets[string]===null) cell.classList.add('chord-muted');
+  });
+  els.patternName.textContent = `${chord.name} Open Chord · Arpeggio Coach`;
+  els.setupSummary.textContent = `CHORD · ${chord.name}`;
+  els.stepTotal.textContent = practiceSequence.length;
+  els.positionProgress.textContent = `CHORD ${chord.name}`;
+  els.trainerFeedback.textContent = t('chord_instruction',{chord:chord.name});
+  memoryLevel=0;applyMemoryLevel();renderSequence();showPracticeTarget();
 }
 
 function createScalePattern() {
+  const mode = els.lessonMode.value;
+  if(mode==='chordOpen') return createChordPattern();
+  document.body.classList.remove('chord-mode');
   const root = Number(els.keySelect.value || 0);
   const scale = SCALES[els.scaleSelect.value];
   const pattern = Number(els.patternSelect.value) % scale.intervals.length;
@@ -286,7 +344,6 @@ function createScalePattern() {
   marathonPositions = [];
   displayedMarathonPosition = -1;
   previewedMarathonPosition = -1;
-  const mode = els.lessonMode.value;
   const stringGroups = {chunkLow:[5,4],chunkMid:[3,2],chunkHigh:[1,0]};
   let exerciseNotes = stringGroups[mode] ? notes.filter(n => stringGroups[mode].includes(n.string)) : [...notes];
   let sequenceOverride = null;
@@ -349,7 +406,7 @@ function createScalePattern() {
     if (exerciseNotes.some(n => n.shift && n.string === Number(c.dataset.string) && n.fret === Number(c.dataset.fret))) c.classList.add('shift-note');
   });
   const systemName = notesPerString === 3 ? '3NPS' : '2 notes/string';
-  const modeNames = {full:'Full Pattern',marathon3nps:'3NPS Marathon P1–P7',chunkLow:'สาย 6–5',chunkMid:'สาย 4–3',chunkHigh:'สาย 2–1',rootHunt:'Root Hunt',memory:'Memory Fade',connectNext:'Connect P ถัดไป',connectThree:'Connect 3 Positions',connectAll:'Connect ทั้งคอ',horizontal:'Horizontal ทุกสาย'};
+  const modeNames = {full:'Full Pattern',marathon3nps:'3NPS Marathon P1–P7',chunkLow:'Strings 6–5',chunkMid:'Strings 4–3',chunkHigh:'Strings 2–1',rootHunt:'Root Hunt',memory:'Memory Fade',connectNext:'Connect Next Position',connectThree:'Connect 3 Positions',connectAll:'Connect All Positions',horizontal:'Horizontal All Strings'};
   els.patternName.textContent = `${NOTE_NAMES[root]} ${scale.name} · Position ${pattern+1} · ${modeNames[mode]}`;
   els.setupSummary.textContent = `${NOTE_NAMES[root]} · ${scale.name.replace('Natural ','')} · P${pattern+1}`;
   els.stepTotal.textContent = practiceSequence.length;
@@ -408,6 +465,11 @@ function setSetupOpen(open) {
 }
 
 function updatePatternOptions() {
+  if(els.lessonMode.value==='chordOpen'){
+    const current=Math.min(Number(els.patternSelect.value||0),OPEN_CHORDS.length-1);
+    els.patternSelect.innerHTML=OPEN_CHORDS.map((chord,index)=>`<option value="${index}" ${index===current?'selected':''}>${chord.name} Open Chord</option>`).join('');
+    return;
+  }
   const count = SCALES[els.scaleSelect.value].intervals.length;
   const label = count === 7 ? '3NPS Position' : 'Box';
   const current = Math.min(Number(els.patternSelect.value || 0), count - 1);
@@ -424,24 +486,24 @@ function completeRound() {
   if (els.lessonMode.value === 'marathon3nps') {
     saveBestRecord();
     stopPractice();
-    els.trainerFeedback.textContent = `MARATHON COMPLETE · ${score} คะแนน · MAX ${maxCombo}×`;
-    toast('ผ่าน 3NPS Position 1–7 แล้ว!');
+    els.trainerFeedback.textContent = t('marathon_complete',{score,combo:maxCombo});
+    toast(t('marathon_passed'));
     return false;
   }
   if (els.lessonMode.value === 'memory') {
     memoryLevel++;
     if (memoryLevel > 3) {
       stopPractice();
-      els.trainerFeedback.textContent = 'ผ่าน Memory Fade ครบทุกระดับแล้ว!';
-      toast('ผ่านบทเรียนจากความจำแล้ว ✓');
+      els.trainerFeedback.textContent = t('memory_complete');
+      toast(t('memory_passed'));
       return false;
     }
     applyMemoryLevel();
-    const labels = ['เห็นชื่อโน้ต','ซ่อนชื่อ เหลือจุด','เหลือเฉพาะ Root','ซ่อนทั้งหมด'];
-    els.trainerFeedback.textContent = `รอบ ${memoryLevel+1}/4 · ${labels[memoryLevel]}`;
+    const labels = t('memory_names');
+    els.trainerFeedback.textContent = t('memory_round',{round:memoryLevel+1,label:labels[memoryLevel]});
   } else if (!loopPractice) {
     stopPractice();
-    els.trainerFeedback.textContent = 'จบรอบแล้ว ✓';
+    els.trainerFeedback.textContent = t('round_complete');
     return false;
   }
   return true;
@@ -543,7 +605,7 @@ function practiceBeat() {
   hitRegistered = false;
   beatAttempt = null;
   document.querySelectorAll('.cell.note-hit').forEach(c => c.classList.remove('note-hit'));
-  els.trainerFeedback.textContent = `สาย ${activeTarget.string+1} · เฟรต ${activeTarget.fret}`;
+  els.trainerFeedback.textContent = t('target_location',{string:activeTarget.string+1,fret:activeTarget.fret});
   const preBeatError = lastAttack ? lastBeatAt - lastAttack.time : Infinity;
   const beatWindow = Math.min(220, practiceIntervalMs * .38);
   if (!freePlay && lastAttack && preBeatError >= 0 && preBeatError <= practiceIntervalMs * .65) {
@@ -566,9 +628,9 @@ function startPractice() {
   activeTarget = null; hitRegistered = false; lastAttack = null; score = 0; combo = 0; hits = 0; misses = 0;
   perfects = 0; goods = 0; wrongNotes = 0; timingMisses = 0; noHits = 0; beatAttempt = null;
   maxCombo = 0; positionReached = 1; updateGameStats();
-  els.practiceBtn.textContent = `■ ${t('stop_practice','หยุดฝึก')}`;
+  els.practiceBtn.textContent = `■ ${t('stop_practice')}`;
   els.practiceBtn.classList.add('running');
-  els.quickPracticeBtn.innerHTML = `<span>■</span><b>${t('stop_practice','หยุดฝึก')}</b>`;
+  els.quickPracticeBtn.innerHTML = `<span>■</span><b>${t('stop_practice')}</b>`;
   els.quickPracticeBtn.classList.add('running');
   freePlay = !els.rhythmEnabled.checked;
   practiceIntervalMs = freePlay ? 1000 : (60000 / Number(els.bpmSlider.value)) / Number(els.noteValue.value);
@@ -584,10 +646,10 @@ function togglePractice() {
   const isRunning = practiceTimer || countdownTimer || countdownGoTimer || positionBreakTimer;
   if (isRunning) return stopPractice();
   if (!hasPracticeInput()) {
-    toast(t('connect_before_practice','กรุณาเชื่อมต่อกีตาร์ก่อนเริ่มฝึก'));
+    toast(t('connect_before_practice'));
     els.connectBtn.classList.add('needs-connection');
     els.headerConnect.classList.add('needs-connection');
-    els.trainerFeedback.textContent = t('connect_before_practice','กรุณาเชื่อมต่อกีตาร์ก่อนเริ่มฝึก');
+    els.trainerFeedback.textContent = t('connect_before_practice');
     setTimeout(() => {
       els.connectBtn.classList.remove('needs-connection');
       els.headerConnect.classList.remove('needs-connection');
@@ -643,9 +705,9 @@ function stopPractice(resetLabel = true) {
   activeTarget = null;
   if(hadActivePractice) window.dispatchEvent(new CustomEvent('guitarrun-practice-end'));
   if (resetLabel) {
-    els.practiceBtn.textContent = `▶ ${t('start_practice','เริ่มฝึก')}`;
+    els.practiceBtn.textContent = `▶ ${t('start_practice')}`;
     els.practiceBtn.classList.remove('running');
-    els.quickPracticeBtn.innerHTML = `<span>▶</span><b>${t('start_practice','เริ่มฝึก')}</b>`;
+    els.quickPracticeBtn.innerHTML = `<span>▶</span><b>${t('start_practice')}</b>`;
     els.quickPracticeBtn.classList.remove('running');
     els.beatCount.textContent = t('ready','READY').toUpperCase();
   }
@@ -714,13 +776,14 @@ async function connect(deviceId) {
     cancelAnimationFrame(raf);
     listen();
     await loadInputs();
-    setLive('เชื่อมต่อแล้ว');
-    els.connectBtn.textContent = '✓ เชื่อมต่อแล้ว';
+    setLive(t('connected'));
+    els.connectBtn.textContent = `✓ ${t('connected')}`;
     els.connectBtn.classList.add('connected');
-    toast('พร้อมแล้ว ลองดีดโน้ต Clean ทีละตัว');
+    els.readoutConnect.hidden = true;
+    toast(t('connection_ready'));
     els.calibrateBtn.classList.add('needs-calibration');
   } catch (err) {
-    toast(err.name === 'NotAllowedError' ? 'กรุณาอนุญาตการใช้ไมโครโฟน' : 'เชื่อมต่ออุปกรณ์เสียงไม่สำเร็จ');
+    toast(err.name === 'NotAllowedError' ? t('mic_permission') : t('audio_connection_failed'));
   }
 }
 
@@ -781,8 +844,8 @@ function setLive(text) {
 function startDemo() {
   if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; cancelAnimationFrame(raf); }
   stopDemo();
-  setLive('Demo กำลังเล่น');
-  els.demoBtn.textContent = 'หยุด Demo';
+  setLive(t('demo_playing'));
+  els.demoBtn.textContent = t('stop_demo');
   const sequence = [82.41, 98, 110, 123.47, 146.83, 164.81, 196, 220, 246.94, 293.66, 329.63];
   let i = 0;
   showNote(sequence[i]);
@@ -791,7 +854,7 @@ function startDemo() {
 
 function stopDemo() {
   clearInterval(demoTimer); demoTimer = null;
-  els.demoBtn.textContent = 'ทดลองโหมด Demo';
+  els.demoBtn.textContent = t('demo');
 }
 
 function toast(message) {
@@ -815,6 +878,7 @@ function renderRoadmap(active = 0) {
 
 els.connectBtn.addEventListener('click', () => connect());
 els.headerConnect.addEventListener('click', () => connect());
+els.readoutConnect.addEventListener('click', () => connect());
 els.setupToggle.addEventListener('click', () => setSetupOpen(true));
 els.setupClose.addEventListener('click', () => setSetupOpen(false));
 document.addEventListener('keydown', event => {
@@ -826,9 +890,6 @@ els.calibrateBtn.addEventListener('click', openCalibration);
 els.calibrationClose.addEventListener('click', closeCalibration);
 els.calibrationStart.addEventListener('click', startCalibration);
 els.calibrationModal.addEventListener('click', e => { if (e.target === els.calibrationModal) closeCalibration(); });
-// Keep the complete game control directly above the guitar UI so mobile players
-// can choose a lesson, press start, and watch the fretboard without a long scroll.
-document.querySelector('.studio').before(document.querySelector('#trainer'));
 buildFretboard();
 els.keySelect.innerHTML = NOTE_NAMES.map((n,i) => `<option value="${i}" ${i===0?'selected':''}>${n}</option>`).join('');
 els.keySelect.addEventListener('change', () => { stopPractice(); createScalePattern(); renderRecordBoard(); });
@@ -847,7 +908,7 @@ els.rhythmEnabled.addEventListener('change', () => {
     : t('tempo_off_hint','Play at your pace — note accuracy only');
   if (practiceTimer) startPractice();
 });
-els.lessonMode.addEventListener('change', () => { stopPractice(); createScalePattern(); els.trainerFeedback.textContent = 'ดีดถูกและตรงจังหวะ จึงไปโน้ตถัดไป'; });
+els.lessonMode.addEventListener('change', () => { stopPractice(); updatePatternOptions(); createScalePattern(); if(els.lessonMode.value!=='chordOpen')els.trainerFeedback.textContent = t('next_note_rule'); });
 els.practiceBtn.addEventListener('click', togglePractice);
 els.quickPracticeBtn.addEventListener('click', togglePractice);
 els.loopToggle.addEventListener('click', () => { loopPractice = !loopPractice; els.loopToggle.classList.toggle('active',loopPractice); els.loopToggle.textContent = `↻ LOOP ${loopPractice?'ON':'OFF'}`; });
@@ -855,25 +916,21 @@ els.flowToggle.addEventListener('click', () => {
   flowMode = !flowMode;
   els.flowToggle.classList.toggle('active', flowMode);
   els.flowToggle.textContent = `→ FLOW ${flowMode ? 'ON' : 'OFF'}`;
-  els.trainerFeedback.textContent = flowMode
-    ? 'FLOW MODE · เป้าหมายเลื่อนไปทุกจังหวะ ไม่ต้องดีดถูก'
-    : 'ACCURACY MODE · ต้องดีดถูกจึงไปโน้ตถัดไป';
+  els.trainerFeedback.textContent = flowMode ? t('flow_mode_hint') : t('accuracy_mode_hint');
 });
 els.scaleFocusToggle.addEventListener('click', () => {
   scaleFocus = !scaleFocus;
   els.scaleFocusToggle.classList.toggle('active',scaleFocus);
   els.scaleFocusToggle.textContent = `◉ SCALE FOCUS ${scaleFocus?'ON':'OFF'}`;
   document.querySelectorAll('.cell.match,.cell.primary-note').forEach(c => c.classList.remove('match','primary-note'));
-  els.trainerFeedback.textContent = scaleFocus
-    ? 'แสดงโน้ตเฉพาะในแพตเทิร์นที่เลือก'
-    : 'แสดงตำแหน่งโน้ตทั้งหมดบนคอกีตาร์';
+  els.trainerFeedback.textContent = scaleFocus ? t('scale_focus_on_hint') : t('scale_focus_off_hint');
 });
 window.addEventListener('fret-language-change', () => {
   if (!practiceTimer) {
-    els.practiceBtn.textContent = `▶ ${t('start_practice','เริ่มฝึก')}`;
-    els.quickPracticeBtn.innerHTML = `<span>▶</span><b>${t('start_practice','เริ่มฝึก')}</b>`;
+    els.practiceBtn.textContent = `▶ ${t('start_practice')}`;
+    els.quickPracticeBtn.innerHTML = `<span>▶</span><b>${t('start_practice')}</b>`;
     els.beatCount.textContent = t('ready','READY').toUpperCase();
-    els.trainerFeedback.textContent = t('trainer_feedback','กดเริ่มฝึก แล้วเล่นตามจุดสีส้ม');
+    els.trainerFeedback.textContent = t('trainer_feedback');
   }
   renderRecordBoard();
   renderRoadmap(activeRoadmapStage);

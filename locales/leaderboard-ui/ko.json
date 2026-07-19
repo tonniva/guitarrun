@@ -21,5 +21,8 @@
   "empty_title": "아직 순위가 없습니다",
   "empty_desc": "연습을 시작하고 첫 번째 기타리스트가 되어 보세요.",
   "no_ranking": "아직 기록이 없습니다. 첫 연습을 시작하세요.",
-  "ranking_unavailable": "순위표에 연결할 수 없습니다."
+  "ranking_unavailable": "순위표에 연결할 수 없습니다.",
+  "country_unknown": "국가 미설정",
+  "practice_unknown": "아직 연습 기록이 없습니다",
+  "select_country": "국가 선택"
 }

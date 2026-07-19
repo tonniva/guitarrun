@@ -21,5 +21,8 @@
   "empty_title": "เวทียังว่างอยู่",
   "empty_desc": "เริ่มฝึกและขึ้นเป็นนักกีตาร์คนแรกบน Leaderboard",
   "no_ranking": "ยังไม่มีสถิติ เริ่มฝึกเป็นคนแรกได้เลย",
-  "ranking_unavailable": "เชื่อมต่อ Leaderboard ไม่ได้"
+  "ranking_unavailable": "เชื่อมต่อ Leaderboard ไม่ได้",
+  "country_unknown": "ยังไม่ระบุประเทศ",
+  "practice_unknown": "ยังไม่มีประวัติการฝึก",
+  "select_country": "เลือกประเทศ"
 }

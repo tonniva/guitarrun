@@ -21,5 +21,8 @@
   "empty_title": "ランキングはまだ空です",
   "empty_desc": "練習を始めて最初のギタリストになりましょう。",
   "no_ranking": "記録はまだありません。最初に練習しましょう。",
-  "ranking_unavailable": "ランキングに接続できません。"
+  "ranking_unavailable": "ランキングに接続できません。",
+  "country_unknown": "国が未設定です",
+  "practice_unknown": "練習履歴はまだありません",
+  "select_country": "国を選択"
 }
