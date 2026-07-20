@@ -1,5 +1,13 @@
 const cfg=window.__GUITARRUN_CONFIG__||{};
-const API=cfg.apiBase||'http://127.0.0.1:4100';
+const rawApiBase=String(cfg.apiBase||'http://127.0.0.1:4100').trim();
+const API=(/^https?:\/\//i.test(rawApiBase)
+  ? rawApiBase
+  : /^(localhost|127\.0\.0\.1)(:\d+)?(\/|$)/i.test(rawApiBase.replace(/^\/+/,''))
+    ? `http://${rawApiBase.replace(/^\/+/, '')}`
+    : `https://${rawApiBase.replace(/^\/+/, '')}`
+).replace(/\/+$/,'');
+const apiUrl=path=>`${API}/${String(path).replace(/^\/+/, '')}`;
+if(import.meta.dev)console.info(`[GuitarRun] API base URL: ${API}`);
 const TOKEN_KEY='guitarrun-session-token';
 let token=localStorage.getItem(TOKEN_KEY),user=null,practiceSessionId=null,lastVerifiedHitAt=0,pendingActiveMs=0;
 let googleLocale='',googleLoadPromise=null;
@@ -15,7 +23,7 @@ const countryLabel=code=>{if(!code)return t('country_unknown');try{return new In
 const renderCountryOptions=()=>{const select=$('profileCountry'),selected=select.value||user?.countryCode||'';select.innerHTML=`<option value="">${flagEmoji()} ${t('select_country')}</option>`+countryCodes.map(code=>`<option value="${code}">${flagEmoji(code)} ${escapeHtml(countryLabel(code))}</option>`).join('');select.value=selected};
 const practiceLabel=session=>session.patternName||[session.scaleKey,session.scaleName].filter(Boolean).join(' · ');
 const practiceTags=row=>{const practices=(row.recentPractices||[]).map(practiceLabel).filter(Boolean);return practices.length?practices.map(label=>`<span>${escapeHtml(label)}</span>`).join(''):`<span class="empty">${t('practice_unknown')}</span>`};
-async function api(path,options={}){const response=await fetch(`${API}${path}`,options);if(!response.ok)throw new Error((await response.json().catch(()=>({}))).error||`HTTP_${response.status}`);return response.status===204?null:response.json()}
+async function api(path,options={}){const response=await fetch(apiUrl(path),options);if(!response.ok)throw new Error((await response.json().catch(()=>({}))).error||`HTTP_${response.status}`);return response.status===204?null:response.json()}
 function openProfile(){ $('profileModal').classList.add('open');$('profileModal').setAttribute('aria-hidden','false') }
 function closeProfile(){ $('profileModal').classList.remove('open');$('profileModal').setAttribute('aria-hidden','true') }
 function renderUser(){const signedIn=!!user;$('signedOutProfile').hidden=signedIn;$('signedInProfile').hidden=!signedIn;$('profileLabel').textContent=signedIn?user.displayName:t('sign_in');$('profileAvatar').textContent=signedIn?user.displayName.slice(0,2).toUpperCase():'GR';if(!signedIn)return;$('profileName').textContent=user.displayName;$('profileEmail').textContent=user.email||'';$('profilePracticeTime').textContent=formatTime(user.totalPracticeSeconds);$('profileNotes').textContent=Number(user.totalNotesPlayed).toLocaleString();$('profileBestCombo').textContent=`${user.bestCombo}×`;$('profileImage').src=imageUrl(user.profileImageUrl);renderCountryOptions();$('profileCountry').value=user.countryCode||''}
@@ -37,5 +45,5 @@ async function trackVerifiedHit(event){if(!token||!practiceSessionId)return;cons
 async function endTrackedPractice(){if(!token||!practiceSessionId)return;const id=practiceSessionId;practiceSessionId=null;await api(`/practice/${id}/end`,{method:'POST',headers:authHeaders()}).catch(()=>{});loadMe();loadLeaderboard()}
 $('profileButton').addEventListener('click',openProfile);$('profileClose').addEventListener('click',closeProfile);$('profileModal').addEventListener('click',event=>{if(event.target===$('profileModal'))closeProfile()});$('logoutButton').addEventListener('click',async()=>{await api('/auth/logout',{method:'POST',headers:authHeaders()}).catch(()=>{});token=null;user=null;localStorage.removeItem(TOKEN_KEY);renderUser()});$('profileImageInput').addEventListener('change',async event=>{const file=event.target.files?.[0];if(!file||!token)return;const body=new FormData();body.append('image',file);const result=await api('/profile/image',{method:'POST',headers:{Authorization:`Bearer ${token}`},body});user=result.user;renderUser();loadLeaderboard()});
 $('profileCountry').addEventListener('change',async event=>{const countryCode=event.target.value;if(!countryCode||!token)return;event.target.disabled=true;try{const result=await api('/profile/country',{method:'PATCH',headers:authHeaders(),body:JSON.stringify({countryCode})});user=result.user;renderUser();loadLeaderboard()}catch{event.target.value=user?.countryCode||''}finally{event.target.disabled=false}});
-window.addEventListener('guitarrun-practice-start',startTrackedPractice);window.addEventListener('guitarrun-verified-hit',trackVerifiedHit);window.addEventListener('guitarrun-practice-end',endTrackedPractice);window.addEventListener('fret-language-change',()=>{renderUser();renderCountryOptions();loadLeaderboard();initGoogle()});window.addEventListener('beforeunload',()=>{if(token&&practiceSessionId)fetch(`${API}/practice/${practiceSessionId}/end`,{method:'POST',headers:authHeaders(),keepalive:true}).catch(()=>{})});
+window.addEventListener('guitarrun-practice-start',startTrackedPractice);window.addEventListener('guitarrun-verified-hit',trackVerifiedHit);window.addEventListener('guitarrun-practice-end',endTrackedPractice);window.addEventListener('fret-language-change',()=>{renderUser();renderCountryOptions();loadLeaderboard();initGoogle()});window.addEventListener('beforeunload',()=>{if(token&&practiceSessionId)fetch(apiUrl(`/practice/${practiceSessionId}/end`),{method:'POST',headers:authHeaders(),keepalive:true}).catch(()=>{})});
 renderCountryOptions();loadMe();loadLeaderboard();initGoogle();

@@ -2,7 +2,7 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: false },
   css: ['~/styles.css'],
-  runtimeConfig: { public: { apiBase: process.env.NUXT_PUBLIC_API_BASE || 'https://platform-api-f7ebccg5emdvgce0.southeastasia-01.azurewebsites.net/'|| 'http://127.0.0.1:4100', googleClientId: process.env.NUXT_PUBLIC_GOOGLE_CLIENT_ID || '' } },
+  runtimeConfig: { public: { apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://127.0.0.1:4100', googleClientId: process.env.NUXT_PUBLIC_GOOGLE_CLIENT_ID || '' } },
   app: {
     head: {
       htmlAttrs: { lang: 'th' },
