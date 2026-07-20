@@ -259,12 +259,20 @@ watch(locale, code => {
       </div>
     </section>
 
+    <figure class="scale-showcase" aria-hidden="true">
+      <img src="/images/guitarrun-scale-play-v2.png" alt="" width="1774" height="887" loading="lazy" decoding="async">
+    </figure>
+
     <section id="communityLeaderboard" class="community-leaderboard">
       <div class="leaderboard-title"><div><span class="eyebrow">{{ tr('community') }}</span><h2>{{ tr('leaderboard_title') }}<br><em>GuitarRun</em></h2></div><div class="leaderboard-intro"><span><i /> {{ tr('live_ranking') }}</span><p>{{ tr('leaderboard_desc') }}</p></div></div>
       <div class="leaderboard-summary"><div><span>{{ tr('ranked_players') }}</span><strong id="leaderboardPlayers">—</strong><small>{{ tr('guitarists') }}</small></div><div><span>{{ tr('total_practice_time') }}</span><strong id="leaderboardTotalTime">—</strong><small>{{ tr('verified_time') }}</small></div><div><span>{{ tr('current_leader') }}</span><strong id="leaderboardChampion">—</strong><small>{{ tr('current_leader_label') }}</small></div></div>
       <div id="leaderboardPodium" class="leaderboard-podium"><div class="leaderboard-loading">{{ tr('loading_ranking') }}</div></div>
       <div class="leaderboard-shell"><div class="leaderboard-head"><span>{{ tr('all_rankings') }}</span><div><span>{{ tr('practice_stats') }}</span><b>{{ tr('verified_practice_time') }}</b></div></div><div id="globalLeaderboard" class="global-leaderboard"><div class="leaderboard-loading">{{ tr('loading_ranking') }}</div></div></div>
     </section>
+
+    <figure class="scale-showcase roadmap-showcase" aria-hidden="true">
+      <img src="/images/guitarrun-roadmap-studio.png" alt="" width="1918" height="820" loading="lazy" decoding="async">
+    </figure>
 
     <section id="roadmap" class="curriculum">
       <div class="curriculum-head"><div><span class="eyebrow">FRET ROADMAP</span><h1>{{ tr('roadmap_title') }}</h1></div><p>{{ tr('roadmap_desc') }}</p></div>
