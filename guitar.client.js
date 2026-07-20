@@ -7,7 +7,7 @@ const els = Object.fromEntries(['connectBtn','headerConnect','readoutConnect','s
 
 let audioContext, analyser, stream, raf, demoTimer, lastMidi = null;
 let smoothedPitch = 0;
-let practiceTimer = null, countdownTimer = null, countdownGoTimer = null, positionBreakTimer = null, practiceSequence = [], practiceStep = 0, loopPractice = true, scaleFocus = true, flowMode = false;
+let practiceTimer = null, countdownTimer = null, countdownGoTimer = null, positionBreakTimer = null, practiceSequence = [], practiceStep = 0, loopPractice = true, scaleFocus = true, flowMode = true;
 let activeTarget = null, lastBeatAt = 0, lastSoundAt = 0, lastAttack = null, hitRegistered = false, practiceIntervalMs = 750;
 let score = 0, combo = 0, hits = 0, misses = 0;
 let perfects = 0, goods = 0, maxCombo = 0, positionReached = 1;
@@ -458,10 +458,20 @@ function renderNextPatternPreview(position) {
   previewedMarathonPosition = position;
 }
 
+function updateSetupClearance() {
+  const setup = document.querySelector('#scale-setup');
+  if (!setup.classList.contains('open')) return;
+  document.body.style.setProperty('--setup-clearance', `${Math.ceil(setup.getBoundingClientRect().height)}px`);
+}
+
 function setSetupOpen(open) {
-  document.querySelector('#scale-setup').classList.toggle('open', open);
+  const setup = document.querySelector('#scale-setup');
+  setup.classList.toggle('open', open);
+  setup.setAttribute('aria-hidden', String(!open));
   document.body.classList.toggle('setup-open', open);
   els.setupToggle.setAttribute('aria-expanded', String(open));
+  if (open) requestAnimationFrame(updateSetupClearance);
+  else document.body.style.removeProperty('--setup-clearance');
 }
 
 function updatePatternOptions() {
@@ -649,10 +659,12 @@ function togglePractice() {
     toast(t('connect_before_practice'));
     els.connectBtn.classList.add('needs-connection');
     els.headerConnect.classList.add('needs-connection');
+    els.readoutConnect.classList.add('needs-connection');
     els.trainerFeedback.textContent = t('connect_before_practice');
     setTimeout(() => {
       els.connectBtn.classList.remove('needs-connection');
       els.headerConnect.classList.remove('needs-connection');
+      els.readoutConnect.classList.remove('needs-connection');
     }, 2200);
     return;
   }
@@ -884,6 +896,10 @@ els.setupClose.addEventListener('click', () => setSetupOpen(false));
 document.addEventListener('keydown', event => {
   if (event.key === 'Escape') setSetupOpen(false);
 });
+window.addEventListener('resize', updateSetupClearance);
+if ('ResizeObserver' in window) {
+  new ResizeObserver(updateSetupClearance).observe(document.querySelector('#scale-setup'));
+}
 els.demoBtn.addEventListener('click', () => demoTimer ? (stopDemo(), location.reload()) : startDemo());
 els.inputSelect.addEventListener('change', e => connect(e.target.value));
 els.calibrateBtn.addEventListener('click', openCalibration);
@@ -939,3 +955,4 @@ updatePatternOptions();
 createScalePattern();
 renderRoadmap();
 renderRecordBoard();
+setSetupOpen(true);

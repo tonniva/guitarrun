@@ -81,6 +81,74 @@ const translate = (key, vars = {}) => {
 }
 const tr = translate
 
+const siteUrl = 'https://www.guitarrun.com/'
+const seoTitle = 'GuitarRun – เว็บฝึกกีตาร์ออนไลน์แบบเรียลไทม์'
+const seoDescription = 'ฝึกกีตาร์ออนไลน์ด้วยระบบฟังเสียงจริง ดูตำแหน่งโน้ตบนคอกีตาร์ ฝึกสเกล คอร์ด และจังหวะ พร้อมติดตามพัฒนาการแบบเรียลไทม์'
+const seoImage = `${siteUrl}brand/guitarrun-logo-source.png`
+
+useSeoMeta({
+  title: seoTitle,
+  description: seoDescription,
+  robots: 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1',
+  ogTitle: seoTitle,
+  ogDescription: seoDescription,
+  ogType: 'website',
+  ogUrl: siteUrl,
+  ogLocale: 'th_TH',
+  ogSiteName: 'GuitarRun',
+  ogImage: seoImage,
+  ogImageWidth: 1536,
+  ogImageHeight: 1024,
+  ogImageAlt: 'GuitarRun เว็บฝึกกีตาร์ออนไลน์แบบเรียลไทม์',
+  twitterCard: 'summary_large_image',
+  twitterTitle: seoTitle,
+  twitterDescription: seoDescription,
+  twitterImage: seoImage,
+  twitterImageAlt: 'GuitarRun เว็บฝึกกีตาร์ออนไลน์แบบเรียลไทม์'
+})
+
+useHead({
+  link: [
+    { rel: 'canonical', href: siteUrl }
+  ],
+  script: [{
+    type: 'application/ld+json',
+    innerHTML: JSON.stringify({
+      '@context': 'https://schema.org',
+      '@graph': [
+        {
+          '@type': 'WebSite',
+          '@id': `${siteUrl}#website`,
+          url: siteUrl,
+          name: 'GuitarRun',
+          description: seoDescription,
+          inLanguage: ['th', 'en', 'zh', 'ja', 'ko', 'es']
+        },
+        {
+          '@type': 'SoftwareApplication',
+          '@id': `${siteUrl}#application`,
+          name: 'GuitarRun',
+          url: siteUrl,
+          description: seoDescription,
+          applicationCategory: 'EducationalApplication',
+          applicationSubCategory: 'Guitar Training',
+          operatingSystem: 'Any',
+          browserRequirements: 'Requires a modern browser with microphone access',
+          image: seoImage,
+          isAccessibleForFree: true,
+          inLanguage: ['th', 'en', 'zh', 'ja', 'ko', 'es'],
+          publisher: {
+            '@type': 'Organization',
+            name: 'GuitarRun',
+            url: siteUrl,
+            logo: `${siteUrl}brand/guitarrun-logo.svg`
+          }
+        }
+      ]
+    })
+  }]
+})
+
 function applyLanguage(code) {
   if (!messages[code]) return
   locale.value = code
@@ -108,12 +176,12 @@ watch(locale, code => {
     <a class="brand" href="#" aria-label="GuitarRun home"><img src="/brand/guitarrun-logo.svg" alt="GuitarRun"></a>
     <div class="header-actions"><button id="profileButton" class="profile-button"><span id="profileAvatar">GR</span><b id="profileLabel">{{ tr('sign_in') }}</b></button><label class="language-menu" :aria-label="tr('language')"><select v-model="locale"><option v-for="language in languages" :key="language.code" :value="language.code">{{ language.flag }} {{ language.name }}</option></select></label><button id="headerConnect" class="header-connect">⌁ {{ tr('connect') }}</button><div class="status-pill"><i id="statusDot" /><span id="statusText">{{ tr('status_offline') }}</span></div></div>
   </header>
-  <button id="setupToggle" class="setup-fab" aria-expanded="false" aria-controls="scale-setup"><span>⚙</span><b id="setupSummary">C · Major · P1</b></button>
+  <button id="setupToggle" class="setup-fab" aria-expanded="true" aria-controls="scale-setup"><span>⚙</span><b id="setupSummary">C · Major · P1</b></button>
 
   <main>
     <section class="hero">
       <div class="eyebrow">PLAY IT. SEE IT.</div>
-      <h1>{{ tr('hero_title') }}<br><em>{{ tr('hero_em') }}</em></h1>
+      <div class="hero-title">{{ tr('hero_title') }}<br><em>{{ tr('hero_em') }}</em></div>
       <p>{{ tr('hero_desc') }}</p>
       <div class="actions">
         <button id="connectBtn" class="primary"><span class="button-icon">⌁</span> {{ tr('connect_guitar') }}</button>
@@ -122,7 +190,7 @@ watch(locale, code => {
       <p class="privacy">{{ tr('privacy') }}</p>
     </section>
 
-    <section id="scale-setup" class="scale-toolbar" :aria-label="tr('scale_setup_label')">
+    <section id="scale-setup" class="scale-toolbar open" role="dialog" aria-modal="true" aria-hidden="false" :aria-label="tr('scale_setup_label')">
       <div class="scale-toolbar-head"><span class="label">{{ tr('setup') }}</span><span>{{ tr('setup_hint') }}</span><button id="setupClose" aria-label="Close Scale Setup">×</button></div>
       <div class="trainer-controls">
         <label>{{ tr('key') }}<select id="keySelect" /></label>
@@ -136,7 +204,7 @@ watch(locale, code => {
         <label>{{ tr('lesson_mode') }}<select id="lessonMode" class="mini-select" aria-label="Lesson mode"><option value="full">Full Pattern</option><option value="marathon3nps" selected>3NPS Marathon · P1–P7</option><option value="chordOpen">Chord Coach · Open Chords</option><option value="chunkLow">Chunk · 6–5</option><option value="chunkMid">Chunk · 4–3</option><option value="chunkHigh">Chunk · 2–1</option><option value="rootHunt">Root Hunt</option><option value="memory">Memory Fade</option><option value="connectNext">Connect · Next Position</option><option value="connectThree">Connect · 3 Positions</option><option value="connectAll">Connect · All Positions</option><option value="horizontal">Horizontal · All Strings</option></select></label>
         <button id="scaleFocusToggle" class="mini active">◉ SCALE FOCUS ON</button>
         <button id="loopToggle" class="mini active">↻ LOOP ON</button>
-        <button id="flowToggle" class="mini">→ FLOW OFF</button>
+        <button id="flowToggle" class="mini active">→ FLOW ON</button>
         <button id="calibrateBtn" class="mini calibration-trigger">◌ {{ tr('calibrate') }}</button>
       </div>
       <button id="quickPracticeBtn" class="setup-practice-btn"><span>▶</span><b>{{ tr('start_practice') }}</b></button>
@@ -146,7 +214,6 @@ watch(locale, code => {
       <div class="readout">
         <div id="noteBlock" class="note-block"><small>{{ tr('detected_note') }}</small><span id="noteName">LIVE</span><sup id="octave" /></div>
         <div class="pitch-data"><strong id="frequency">0.0 Hz</strong><span id="pitchHint">{{ tr('play_one_note') }}</span></div>
-        <button id="readoutConnect" class="readout-connect"><span>⌁</span> {{ tr('connect_guitar') }}</button>
         <div class="tuner"><div class="tuner-scale"><i>-50</i><i>-25</i><i>0</i><i>+25</i><i>+50</i></div><div class="tuner-track"><b id="tunerNeedle" /></div><span id="centsLabel">0 cents</span></div>
       </div>
       <div class="fretboard-wrap"><div id="guitarHitBanner" class="guitar-hit-banner"><strong>PERFECT!</strong><span>+100 · 1× COMBO</span></div><div id="positionGuide" class="position-guide"><div class="position-guide-head"><small>{{ tr('next_starts_in') }}</small><strong>P2</strong><span id="positionGuideRemaining">5</span></div><div class="next-pattern-label">{{ tr('ghost_on_fretboard') }}</div><div class="next-pattern-detail"><b id="nextRootDetail">ROOT C</b><span id="nextStartDetail">START C · STRING 6 · FRET 8</span></div><i><em id="positionGuideBar" /></i></div><div id="positionTransition" class="position-transition"><small>{{ tr('position_success') }}</small><strong>P1 ✓</strong><span>{{ tr('keep_combo') }}</span></div><div id="fretNumbers" class="fret-numbers" /><div id="fretboard" class="fretboard" :aria-label="tr('fretboard_label')" /></div>
@@ -156,7 +223,10 @@ watch(locale, code => {
           <div id="hitEffect" class="hit-effect"><strong>PERFECT!</strong><span>+100</span><i /><i /><i /><i /><i /><i /></div>
           <div id="countRing" class="count-ring"><span id="targetNote">A</span><small id="beatCount">{{ tr('ready') }}</small></div>
           <div class="trainer-info"><span id="patternName">A Minor Pentatonic · Pattern 1</span><strong id="directionText">ASCENDING ↑</strong><div id="sequence" class="sequence" /><div class="game-stats"><span>{{ tr('score') }} <b id="scoreValue">0000</b></span><span>{{ tr('combo') }} <b id="comboValue">0×</b></span><span>{{ tr('hit') }} <b id="accuracyValue">—</b></span></div></div>
-          <button id="practiceBtn" class="practice-btn">▶ {{ tr('start_practice') }}</button>
+          <div class="trainer-actions">
+            <button id="readoutConnect" class="readout-connect"><span>⌁</span> {{ tr('connect_guitar') }}</button>
+            <button id="practiceBtn" class="practice-btn">▶ {{ tr('start_practice') }}</button>
+          </div>
         </div>
         <div class="trainer-foot"><span><b id="stepNow">0</b> / <span id="stepTotal">0</span> NOTES</span><span id="trainerFeedback">{{ tr('trainer_feedback') }}</span></div>
       </div>
@@ -197,7 +267,7 @@ watch(locale, code => {
     </section>
 
     <section id="roadmap" class="curriculum">
-      <div class="curriculum-head"><div><span class="eyebrow">FRET ROADMAP</span><h2>{{ tr('roadmap_title') }}</h2></div><p>{{ tr('roadmap_desc') }}</p></div>
+      <div class="curriculum-head"><div><span class="eyebrow">FRET ROADMAP</span><h1>{{ tr('roadmap_title') }}</h1></div><p>{{ tr('roadmap_desc') }}</p></div>
       <div id="roadmapLine" class="roadmap-line" />
       <div id="lessonGrid" class="lesson-grid" />
       <div class="method-note"><span>{{ tr('curriculum_principle') }}</span><p>{{ tr('curriculum_principle_text') }}</p></div>
