@@ -209,7 +209,7 @@ footer { padding:28px clamp(20px,5vw,76px); border-top:1px solid #1c2229; displa
 }
 
 /* GuitarRun visual system */
-body{background:radial-gradient(circle at 18% 8%,#d7ff450a,transparent 27%),radial-gradient(circle at 88% 38%,#35bfff08,transparent 25%),#080c10}
+body{background-color:#080c10;background-image:linear-gradient(#080c1090,#080c1090),radial-gradient(circle at 18% 8%,#d7ff450a,transparent 27%),radial-gradient(circle at 88% 38%,#35bfff08,transparent 25%),url('/images/guitarrun-dark-blueprint-bg.png');background-size:auto,auto,auto,cover;background-position:center,center,center,center;background-repeat:no-repeat;background-attachment:scroll,scroll,scroll,fixed}
 .topbar{background:#090d12e8;backdrop-filter:blur(18px);border-bottom-color:#d7ff4524;box-shadow:0 8px 35px #0008}
 .hero:before{content:'RUN YOUR NEXT NOTE';display:block;margin:0 auto 24px;width:max-content;padding:7px 12px;border:1px solid #d7ff4540;color:#d7ff45;background:#d7ff4508;font:8px 'IBM Plex Mono';letter-spacing:2px;transform:skew(-8deg)}
 .trainer-panel,.performance-board,.studio{border-color:#34404a;border-radius:10px;overflow:hidden;box-shadow:0 22px 60px #0007,0 0 0 1px #d7ff4505}
