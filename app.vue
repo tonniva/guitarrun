@@ -176,8 +176,6 @@ watch(locale, code => {
     <a class="brand" href="#" aria-label="GuitarRun home"><img src="/brand/guitarrun-logo.svg" alt="GuitarRun"></a>
     <div class="header-actions"><button id="profileButton" class="profile-button"><span id="profileAvatar">GR</span><b id="profileLabel">{{ tr('sign_in') }}</b></button><label class="language-menu" :aria-label="tr('language')"><select v-model="locale"><option v-for="language in languages" :key="language.code" :value="language.code">{{ language.flag }} {{ language.name }}</option></select></label><button id="headerConnect" class="header-connect">⌁ {{ tr('connect') }}</button><div class="status-pill"><i id="statusDot" /><span id="statusText">{{ tr('status_offline') }}</span></div></div>
   </header>
-  <button id="setupToggle" class="setup-fab" aria-expanded="true" aria-controls="scale-setup"><span>⚙</span><b id="setupSummary">C · Major · P1</b></button>
-
   <main>
     <section class="hero">
       <div class="eyebrow">PLAY IT. SEE IT.</div>
@@ -190,7 +188,7 @@ watch(locale, code => {
       <p class="privacy">{{ tr('privacy') }}</p>
     </section>
 
-    <section id="scale-setup" class="scale-toolbar open" role="dialog" aria-modal="true" aria-hidden="false" :aria-label="tr('scale_setup_label')">
+    <section id="scale-setup" class="scale-toolbar" role="dialog" aria-modal="true" aria-hidden="true" :aria-label="tr('scale_setup_label')">
       <div class="scale-toolbar-head"><span class="label">{{ tr('setup') }}</span><span>{{ tr('setup_hint') }}</span><button id="setupClose" aria-label="Close Scale Setup">×</button></div>
       <div class="trainer-controls">
         <label>{{ tr('key') }}<select id="keySelect" /></label>
@@ -201,7 +199,7 @@ watch(locale, code => {
         <label class="input-control">{{ tr('live_input') }}<select id="inputSelect" aria-label="Audio input" disabled><option>Default audio input</option></select><span class="compact-level"><i id="levelBar" /></span></label>
       </div>
       <div class="fixed-mode-controls">
-        <label>{{ tr('lesson_mode') }}<select id="lessonMode" class="mini-select" aria-label="Lesson mode"><option value="full">Full Pattern</option><option value="marathon3nps" selected>3NPS Marathon · P1–P7</option><option value="chordOpen">Chord Coach · Open Chords</option><option value="chunkLow">Chunk · 6–5</option><option value="chunkMid">Chunk · 4–3</option><option value="chunkHigh">Chunk · 2–1</option><option value="rootHunt">Root Hunt</option><option value="memory">Memory Fade</option><option value="connectNext">Connect · Next Position</option><option value="connectThree">Connect · 3 Positions</option><option value="connectAll">Connect · All Positions</option><option value="horizontal">Horizontal · All Strings</option></select></label>
+        <label>{{ tr('lesson_mode') }}<select id="lessonMode" class="mini-select" aria-label="Lesson mode"><option value="full" selected>Full Pattern</option><option value="marathon3nps">3NPS Marathon · P1–P7</option><option value="chordOpen">Chord Coach · Open Chords</option><option value="chunkLow">Chunk · 6–5</option><option value="chunkMid">Chunk · 4–3</option><option value="chunkHigh">Chunk · 2–1</option><option value="rootHunt">Root Hunt</option><option value="memory">Memory Fade</option><option value="connectNext">Connect · Next Position</option><option value="connectThree">Connect · 3 Positions</option><option value="connectAll">Connect · All Positions</option><option value="horizontal">Horizontal · All Strings</option></select></label>
         <button id="scaleFocusToggle" class="mini active">◉ SCALE FOCUS ON</button>
         <button id="loopToggle" class="mini active">↻ LOOP ON</button>
         <button id="flowToggle" class="mini active">→ FLOW ON</button>
@@ -216,7 +214,7 @@ watch(locale, code => {
         <div class="pitch-data"><strong id="frequency">0.0 Hz</strong><span id="pitchHint">{{ tr('play_one_note') }}</span></div>
         <div class="tuner"><div class="tuner-scale"><i>-50</i><i>-25</i><i>0</i><i>+25</i><i>+50</i></div><div class="tuner-track"><b id="tunerNeedle" /></div><span id="centsLabel">0 cents</span></div>
       </div>
-      <div class="fretboard-wrap"><div id="guitarHitBanner" class="guitar-hit-banner"><strong>PERFECT!</strong><span>+100 · 1× COMBO</span></div><div id="positionGuide" class="position-guide"><div class="position-guide-head"><small>{{ tr('next_starts_in') }}</small><strong>P2</strong><span id="positionGuideRemaining">5</span></div><div class="next-pattern-label">{{ tr('ghost_on_fretboard') }}</div><div class="next-pattern-detail"><b id="nextRootDetail">ROOT C</b><span id="nextStartDetail">START C · STRING 6 · FRET 8</span></div><i><em id="positionGuideBar" /></i></div><div id="positionTransition" class="position-transition"><small>{{ tr('position_success') }}</small><strong>P1 ✓</strong><span>{{ tr('keep_combo') }}</span></div><div id="fretNumbers" class="fret-numbers" /><div id="fretboard" class="fretboard" :aria-label="tr('fretboard_label')" /></div>
+      <div class="fretboard-wrap"><button id="setupToggle" class="setup-fab" aria-expanded="false" aria-controls="scale-setup"><span>⚙</span><b id="setupSummary">C · Major · P1</b></button><div class="fret-quick-controls"><div class="fret-quick-row"><span>{{ tr('key') }}</span><div id="quickKeyChoices" class="quick-choices quick-keys" /></div><div class="fret-quick-row"><span>{{ tr('pattern') }}</span><div id="quickPositionChoices" class="quick-choices quick-positions" /></div></div><div id="guitarHitBanner" class="guitar-hit-banner"><strong>PERFECT!</strong><span>+100 · 1× COMBO</span></div><div id="positionGuide" class="position-guide"><div class="position-guide-head"><small>{{ tr('next_starts_in') }}</small><strong>P2</strong><span id="positionGuideRemaining">5</span></div><div class="next-pattern-label">{{ tr('ghost_on_fretboard') }}</div><div class="next-pattern-detail"><b id="nextRootDetail">ROOT C</b><span id="nextStartDetail">START C · STRING 6 · FRET 8</span></div><i><em id="positionGuideBar" /></i></div><div id="positionTransition" class="position-transition"><small>{{ tr('position_success') }}</small><strong>P1 ✓</strong><span>{{ tr('keep_combo') }}</span></div><div id="fretNumbers" class="fret-numbers" /><div id="fretboard" class="fretboard" :aria-label="tr('fretboard_label')" /></div>
       <div class="trainer-panel">
         <div class="trainer-stage">
           <div id="countdownOverlay" class="countdown-overlay"><small>{{ tr('get_ready') }}</small><strong id="countdownValue">3</strong></div>

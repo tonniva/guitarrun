@@ -3,7 +3,7 @@ import { CURRICULA } from './locales/curriculum/index.js';
 const NOTE_NAMES = ['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];
 const t = (key, vars) => window.__FRET_T?.(key, vars) || key;
 const OPEN_MIDI = [64, 59, 55, 50, 45, 40]; // visual: high E → low E
-const els = Object.fromEntries(['connectBtn','headerConnect','readoutConnect','setupToggle','setupClose','setupSummary','quickPracticeBtn','demoBtn','inputSelect','statusDot','statusText','levelBar','noteBlock','noteName','octave','frequency','pitchHint','tunerNeedle','centsLabel','fretboard','fretNumbers','toast','keySelect','scaleSelect','patternSelect','bpmSlider','bpmValue','noteValue','rhythmEnabled','practiceBtn','targetNote','beatCount','countRing','patternName','directionText','sequence','stepNow','stepTotal','trainerFeedback','lessonMode','loopToggle','flowToggle','scaleFocusToggle','hitEffect','guitarHitBanner','positionGuide','positionGuideRemaining','positionGuideBar','nextRootDetail','nextStartDetail','positionTransition','countdownOverlay','countdownValue','scoreValue','comboValue','accuracyValue','perfectCount','goodCount','missCount','wrongCount','timingCount','noHitCount','perfectBar','goodBar','missBar','maxComboValue','sessionScore','positionProgress','recordBoard','roadmapLine','lessonGrid','calibrateBtn','calibrationModal','calibrationClose','calibrationStart','calibrationInstruction','calibrationMeter','calibrationStatus','calibrationDetail'].map(id => [id, document.getElementById(id)]));
+const els = Object.fromEntries(['connectBtn','headerConnect','readoutConnect','setupToggle','setupClose','setupSummary','quickKeyChoices','quickPositionChoices','quickPracticeBtn','demoBtn','inputSelect','statusDot','statusText','levelBar','noteBlock','noteName','octave','frequency','pitchHint','tunerNeedle','centsLabel','fretboard','fretNumbers','toast','keySelect','scaleSelect','patternSelect','bpmSlider','bpmValue','noteValue','rhythmEnabled','practiceBtn','targetNote','beatCount','countRing','patternName','directionText','sequence','stepNow','stepTotal','trainerFeedback','lessonMode','loopToggle','flowToggle','scaleFocusToggle','hitEffect','guitarHitBanner','positionGuide','positionGuideRemaining','positionGuideBar','nextRootDetail','nextStartDetail','positionTransition','countdownOverlay','countdownValue','scoreValue','comboValue','accuracyValue','perfectCount','goodCount','missCount','wrongCount','timingCount','noHitCount','perfectBar','goodBar','missBar','maxComboValue','sessionScore','positionProgress','recordBoard','roadmapLine','lessonGrid','calibrateBtn','calibrationModal','calibrationClose','calibrationStart','calibrationInstruction','calibrationMeter','calibrationStatus','calibrationDetail'].map(id => [id, document.getElementById(id)]));
 
 let audioContext, analyser, stream, raf, demoTimer, lastMidi = null;
 let smoothedPitch = 0;
@@ -474,16 +474,31 @@ function setSetupOpen(open) {
   else document.body.style.removeProperty('--setup-clearance');
 }
 
+function syncQuickControls() {
+  const key = String(els.keySelect.value);
+  const position = String(els.patternSelect.value);
+  els.quickKeyChoices.querySelectorAll('button').forEach(button => button.classList.toggle('active', button.dataset.value === key));
+  els.quickPositionChoices.querySelectorAll('button').forEach(button => button.classList.toggle('active', button.dataset.value === position));
+}
+
+function renderQuickControls() {
+  els.quickKeyChoices.innerHTML = NOTE_NAMES.map((note, index) => `<button type="button" data-value="${index}" aria-label="${t('key')} ${note}">${note}</button>`).join('');
+  els.quickPositionChoices.innerHTML = Array.from(els.patternSelect.options, (option, index) => `<button type="button" data-value="${option.value}" aria-label="${option.textContent}">${index + 1}</button>`).join('');
+  syncQuickControls();
+}
+
 function updatePatternOptions() {
   if(els.lessonMode.value==='chordOpen'){
     const current=Math.min(Number(els.patternSelect.value||0),OPEN_CHORDS.length-1);
     els.patternSelect.innerHTML=OPEN_CHORDS.map((chord,index)=>`<option value="${index}" ${index===current?'selected':''}>${chord.name} Open Chord</option>`).join('');
+    renderQuickControls();
     return;
   }
   const count = SCALES[els.scaleSelect.value].intervals.length;
   const label = count === 7 ? '3NPS Position' : 'Box';
   const current = Math.min(Number(els.patternSelect.value || 0), count - 1);
   els.patternSelect.innerHTML = Array.from({length:count},(_,i) => `<option value="${i}" ${i===current?'selected':''}>${label} ${i+1}</option>`).join('');
+  renderQuickControls();
 }
 
 function applyMemoryLevel() {
@@ -908,13 +923,25 @@ els.calibrationStart.addEventListener('click', startCalibration);
 els.calibrationModal.addEventListener('click', e => { if (e.target === els.calibrationModal) closeCalibration(); });
 buildFretboard();
 els.keySelect.innerHTML = NOTE_NAMES.map((n,i) => `<option value="${i}" ${i===0?'selected':''}>${n}</option>`).join('');
-els.keySelect.addEventListener('change', () => { stopPractice(); createScalePattern(); renderRecordBoard(); });
+els.keySelect.addEventListener('change', () => { stopPractice(); createScalePattern(); renderRecordBoard(); syncQuickControls(); });
 els.scaleSelect.addEventListener('change', () => {
   stopPractice(); updatePatternOptions();
   if (SCALES[els.scaleSelect.value].intervals.length !== 7 && els.lessonMode.value === 'marathon3nps') els.lessonMode.value = 'full';
   createScalePattern(); renderRecordBoard();
 });
-els.patternSelect.addEventListener('change', () => { stopPractice(); createScalePattern(); });
+els.patternSelect.addEventListener('change', () => { stopPractice(); createScalePattern(); syncQuickControls(); });
+els.quickKeyChoices.addEventListener('click', event => {
+  const button = event.target.closest('button[data-value]');
+  if (!button) return;
+  els.keySelect.value = button.dataset.value;
+  els.keySelect.dispatchEvent(new Event('change', { bubbles: true }));
+});
+els.quickPositionChoices.addEventListener('click', event => {
+  const button = event.target.closest('button[data-value]');
+  if (!button) return;
+  els.patternSelect.value = button.dataset.value;
+  els.patternSelect.dispatchEvent(new Event('change', { bubbles: true }));
+});
 els.bpmSlider.addEventListener('input', () => { els.bpmValue.textContent = `${els.bpmSlider.value} BPM`; if (practiceTimer) startPractice(); });
 els.noteValue.addEventListener('change', () => { if (practiceTimer) startPractice(); });
 els.rhythmEnabled.addEventListener('change', () => {
@@ -942,6 +969,7 @@ els.scaleFocusToggle.addEventListener('click', () => {
   els.trainerFeedback.textContent = scaleFocus ? t('scale_focus_on_hint') : t('scale_focus_off_hint');
 });
 window.addEventListener('fret-language-change', () => {
+  renderQuickControls();
   if (!practiceTimer) {
     els.practiceBtn.textContent = `▶ ${t('start_practice')}`;
     els.quickPracticeBtn.innerHTML = `<span>▶</span><b>${t('start_practice')}</b>`;
@@ -955,4 +983,4 @@ updatePatternOptions();
 createScalePattern();
 renderRoadmap();
 renderRecordBoard();
-setSetupOpen(true);
+setSetupOpen(false);
