@@ -194,6 +194,22 @@ watch(locale, code => {
       <p class="privacy">{{ tr('privacy') }}</p>
     </section>
 
+    <section class="overview-video" aria-labelledby="overviewVideoTitle">
+      <div class="overview-video-copy">
+        <span class="eyebrow">HOW IT WORKS</span>
+        <h2 id="overviewVideoTitle">From guitar cable to<br><em>Marathon mode.</em></h2>
+        <p>Connect your guitar, choose a scale, and follow every highlighted note in real time.</p>
+        <a href="#scale-setup">Start practicing →</a>
+      </div>
+      <div class="overview-video-frame">
+        <video autoplay muted loop playsinline controls preload="metadata" poster="/video/guitarrun-overview-poster.jpg" aria-label="How to connect a guitar and practice with GuitarRun">
+          <source src="/video/guitarrun-presentation.mp4" type="video/mp4">
+          Your browser does not support the GuitarRun tutorial video.
+        </video>
+        <span>FULL PRESENTATION · 27 SEC</span>
+      </div>
+    </section>
+
     <section id="scale-setup" class="scale-toolbar" role="dialog" aria-modal="true" aria-hidden="true" :aria-label="tr('scale_setup_label')">
       <div class="scale-toolbar-head"><span class="label">{{ tr('setup') }}</span><span>{{ tr('setup_hint') }}</span><button id="setupClose" aria-label="Close Scale Setup">×</button></div>
       <div class="trainer-controls">
