@@ -82,6 +82,8 @@ const translate = (key, vars = {}) => {
 const tr = translate
 
 const siteUrl = 'https://www.guitarrun.com/'
+const facebookUrl = 'https://www.facebook.com/profile.php?id=61588747225214'
+const youtubeUrl = 'https://www.youtube.com/@GuitarRun-b7m'
 const seoTitle = 'GuitarRun — Free Online Guitar Fretboard & Scale Trainer'
 const seoDescription = 'Learn guitar notes, scales, timing, and fretboard positions with real-time pitch detection. Connect your guitar or microphone and start practicing for free.'
 const seoImage = `${siteUrl}brand/guitarrun-logo-source.png`
@@ -126,6 +128,7 @@ useHead({
           url: siteUrl,
           name: 'GuitarRun',
           description: seoDescription,
+          sameAs: [facebookUrl, youtubeUrl],
           inLanguage: ['th', 'en', 'zh', 'ja', 'ko', 'es']
         },
         {
@@ -168,6 +171,9 @@ onMounted(async () => {
   applyLanguage(localStorage.getItem('fret-language') || 'en')
   await import('./guitar.client.js')
   await import('./account.client.js')
+  await import('./contact.client.js')
+  await import('./guide.client.js')
+  await import('./marathon-guide.client.js')
 })
 
 watch(locale, code => {
@@ -201,17 +207,37 @@ watch(locale, code => {
         <p>Connect your guitar, choose a scale, and follow every highlighted note in real time.</p>
         <a href="#scale-setup">Start practicing →</a>
       </div>
-      <div class="overview-video-frame">
-        <video autoplay muted loop playsinline controls preload="metadata" poster="/video/guitarrun-overview-poster.jpg" aria-label="How to connect a guitar and practice with GuitarRun">
-          <source src="/video/guitarrun-presentation.mp4" type="video/mp4">
-          Your browser does not support the GuitarRun tutorial video.
-        </video>
-        <span>FULL PRESENTATION · 27 SEC</span>
+      <div class="overview-video-media">
+        <div class="overview-video-frame">
+          <video autoplay muted loop playsinline controls preload="metadata" poster="/video/guitarrun-overview-poster.jpg" aria-label="How to connect a guitar and practice with GuitarRun">
+            <source src="/video/guitarrun-presentation.mp4" type="video/mp4">
+            Your browser does not support the GuitarRun tutorial video.
+          </video>
+          <span>FULL PRESENTATION · 27 SEC</span>
+        </div>
+        <small>Best experienced on desktop or iPad.</small>
       </div>
     </section>
 
+    <section class="input-guide-home" aria-labelledby="inputGuideTitle">
+      <div class="input-guide-head"><div><span class="eyebrow">CHOOSE YOUR INPUT</span><h2 id="inputGuideTitle">Connect your guitar.<br><em>Get a cleaner signal.</em></h2></div><p>Both options work with GuitarRun. Choose the setup you have, then follow the quick guide for more accurate note detection.</p></div>
+      <div class="input-guide-options">
+        <article class="input-option recommended">
+          <div class="input-icon interface-icon" aria-hidden="true"><svg viewBox="0 0 120 92" role="img"><rect x="20" y="16" width="80" height="60" rx="8"/><circle cx="43" cy="46" r="13"/><circle cx="43" cy="46" r="5"/><circle cx="78" cy="35" r="8"/><path d="M78 27v16M70 35h16M31 76v9M89 76v9M7 46h13M100 46h13"/><circle cx="77" cy="59" r="3"/><circle cx="89" cy="59" r="3"/></svg></div>
+          <div><span>BEST ACCURACY</span><h3>Audio Interface</h3><p>Direct, low-noise input for electric guitar, faster phrases, and Marathon combos.</p></div>
+          <b>RECOMMENDED</b>
+        </article>
+        <article class="input-option">
+          <div class="input-icon microphone-icon" aria-hidden="true"><svg viewBox="0 0 120 92" role="img"><rect x="43" y="10" width="34" height="52" rx="17"/><path d="M32 46v3c0 16 12 27 28 27s28-11 28-27v-3M60 76v10M45 86h30M50 24h20M50 34h20M50 44h20"/></svg></div>
+          <div><span>NO EXTRA GEAR</span><h3>Notebook Microphone</h3><p>Quick to start with acoustic guitar. Use a quiet room and play one clean note at a time.</p></div>
+          <b>EASY START</b>
+        </article>
+      </div>
+      <div class="input-guide-action"><span>Not sure which one to use?</span><a href="/guitar-audio-interface-vs-microphone/">Open the complete connection guide →</a></div>
+    </section>
+
     <section id="scale-setup" class="scale-toolbar" role="dialog" aria-modal="true" aria-hidden="true" :aria-label="tr('scale_setup_label')">
-      <div class="scale-toolbar-head"><span class="label">{{ tr('setup') }}</span><span>{{ tr('setup_hint') }}</span><button id="setupClose" aria-label="Close Scale Setup">×</button></div>
+      <div class="scale-toolbar-head"><span class="label">{{ tr('setup') }}</span><span>{{ tr('setup_hint') }}</span><button id="guideReplay" class="guide-replay" type="button" aria-label="Show setup guide again">?</button><button id="setupClose" aria-label="Close Scale Setup">×</button></div>
       <div class="trainer-controls">
         <label>{{ tr('key') }}<select id="keySelect" /></label>
         <label>{{ tr('scale') }}<select id="scaleSelect"><option value="major" selected>Major</option><option value="minor">Natural Minor</option><option value="majorPenta">Major Pentatonic</option><option value="minorPenta">Minor Pentatonic</option></select></label>
@@ -227,6 +253,7 @@ watch(locale, code => {
         <button id="flowToggle" class="mini active">→ FLOW ON</button>
         <button id="calibrateBtn" class="mini calibration-trigger">◌ {{ tr('calibrate') }}</button>
       </div>
+      <a class="audio-input-guide-link" href="/guitar-audio-interface-vs-microphone/" target="_blank" rel="noopener">Interface or notebook microphone? Read the setup guide ↗</a>
       <button id="quickPracticeBtn" class="setup-practice-btn"><span>▶</span><b>{{ tr('start_practice') }}</b></button>
     </section>
 
@@ -311,10 +338,39 @@ watch(locale, code => {
       <div class="method-note"><span>{{ tr('curriculum_principle') }}</span><p>{{ tr('curriculum_principle_text') }}</p></div>
     </section>
 
+    <section id="contact" class="contact-section" aria-labelledby="contactTitle">
+      <div class="contact-copy">
+        <span class="eyebrow">CONTACT GUITARRUN</span>
+        <h2 id="contactTitle">Let’s talk about<br><em>your next run.</em></h2>
+        <p>Questions, feedback, partnerships, or technical issues—send us a message and we’ll get back to you.</p>
+        <div class="contact-note"><b>↗</b><span>Your message is sent securely and stored for follow-up.</span></div>
+        <div class="contact-socials"><a class="contact-social" :href="facebookUrl" target="_blank" rel="noopener noreferrer" aria-label="Follow GuitarRun on Facebook"><span>f</span> Follow on Facebook ↗</a><a class="contact-social youtube" :href="youtubeUrl" target="_blank" rel="noopener noreferrer" aria-label="Watch GuitarRun on YouTube"><span>▶</span> Watch on YouTube ↗</a></div>
+      </div>
+      <form id="contactForm" class="contact-form">
+        <div class="contact-fields">
+          <label><span>Name</span><input name="name" type="text" minlength="2" maxlength="120" autocomplete="name" required placeholder="Your name"></label>
+          <label><span>Email</span><input name="email" type="email" maxlength="320" autocomplete="email" required placeholder="you@example.com"></label>
+        </div>
+        <label><span>Subject</span><input name="subject" type="text" minlength="3" maxlength="160" required placeholder="How can we help?"></label>
+        <label><span>Message</span><textarea name="message" minlength="10" maxlength="4000" rows="6" required placeholder="Tell us a little more..."></textarea></label>
+        <label class="contact-honeypot" aria-hidden="true">Website<input name="website" type="text" tabindex="-1" autocomplete="off"></label>
+        <div class="contact-submit"><p id="contactStatus" role="status" aria-live="polite">We usually reply within 1–2 business days.</p><button id="contactSubmit" type="submit">Send message →</button></div>
+      </form>
+    </section>
+
     <section class="how"><div><b>01</b><h2>{{ tr('plug') }}</h2><p>USB Audio Interface / Microphone</p></div><div><b>02</b><h2>{{ tr('allow') }}</h2><p>Browser audio permission</p></div><div><b>03</b><h2>{{ tr('play') }}</h2><p>Real-time fretboard visualization</p></div></section>
   </main>
 
-  <footer><span>FRET LAB / NUXT</span><a href="/guitar-note-trainer/">NOTE TRAINER</a><a href="/pentatonic-scale-guitar/">PENTATONIC GUIDE</a><a href="/learn-guitar-fretboard/">FRETBOARD GUIDE</a><a href="/guitar-fretboard-trainer/">FREE TRAINER</a><span>WEB AUDIO • REAL-TIME PITCH</span></footer>
+  <div id="marathonGuide" class="marathon-guide" aria-hidden="true">
+    <section class="marathon-guide-card" role="dialog" aria-modal="true" aria-labelledby="marathonGuideTitle">
+      <button id="marathonGuideClose" class="marathon-guide-close" type="button" aria-label="Close Marathon guide">×</button>
+      <div class="marathon-guide-copy"><span class="eyebrow">3NPS MARATHON · QUICK GUIDE</span><h2 id="marathonGuideTitle">Keep playing.<br><em>Position 1 → 7.</em></h2><p>Finish one position and GuitarRun moves straight to the next. Keep your timing—and your combo—alive.</p><div class="marathon-flow"><b>P1</b><i>→</i><b>P2</b><i>→</i><b>…</b><i>→</i><b>P7</b></div></div>
+      <div class="marathon-guide-video"><video id="marathonGuideVideo" muted playsinline preload="metadata"><source src="/video/guide-marathon.m4v" type="video/x-m4v"></video><span>1.5× QUICK PREVIEW</span></div>
+      <button id="marathonGuideDone" class="marathon-guide-done" type="button">Got it — Start Marathon →</button>
+    </section>
+  </div>
+
+  <footer><span>FRET LAB / NUXT</span><a href="/guitar-note-trainer/">NOTE TRAINER</a><a href="/pentatonic-scale-guitar/">PENTATONIC GUIDE</a><a href="/learn-guitar-fretboard/">FRETBOARD GUIDE</a><a href="/guitar-fretboard-trainer/">FREE TRAINER</a><a href="/guitar-audio-interface-vs-microphone/">INPUT GUIDE</a><a href="#contact">CONTACT</a><a :href="facebookUrl" target="_blank" rel="noopener noreferrer" aria-label="GuitarRun on Facebook">FACEBOOK ↗</a><a :href="youtubeUrl" target="_blank" rel="noopener noreferrer" aria-label="GuitarRun on YouTube">YOUTUBE ↗</a><span>WEB AUDIO • REAL-TIME PITCH</span></footer>
   <div id="profileModal" class="profile-modal" aria-hidden="true"><div class="profile-card"><button id="profileClose" class="profile-close">×</button><span class="eyebrow">GUITARRUN PROFILE</span><div id="signedOutProfile"><h2>{{ tr('profile_tagline') }}</h2><p>{{ tr('profile_signin_desc') }}</p><div id="googleSignIn"></div><p id="googleSetupHint" class="google-setup-hint"></p></div><div id="signedInProfile" hidden><div class="profile-identity"><img id="profileImage" alt="Profile"><div><h2 id="profileName">Guitar Player</h2><span id="profileEmail"></span></div></div><label class="profile-country"><span>{{ tr('your_country') }}</span><select id="profileCountry" :aria-label="tr('your_country')" /></label><label class="profile-upload">{{ tr('change_profile_photo') }}<input id="profileImageInput" type="file" accept="image/png,image/jpeg,image/webp"></label><div class="profile-stats"><span><b id="profilePracticeTime">0h</b>{{ tr('real_practice_time') }}</span><span><b id="profileNotes">0</b>{{ tr('notes_label') }}</span><span><b id="profileBestCombo">0×</b>{{ tr('best_combo_label') }}</span></div><button id="logoutButton" class="logout-button">{{ tr('sign_out') }}</button></div></div></div>
   <div id="calibrationModal" class="calibration-modal" aria-hidden="true">
     <div class="calibration-card" role="dialog" aria-modal="true" :aria-label="tr('calibrate')">
