@@ -5,7 +5,7 @@ export default defineNuxtConfig({
   runtimeConfig: { public: { apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://127.0.0.1:4100', googleClientId: process.env.NUXT_PUBLIC_GOOGLE_CLIENT_ID || '' } },
   app: {
     head: {
-      htmlAttrs: { lang: 'th' },
+      htmlAttrs: { lang: 'en' },
       title: 'GuitarRun — Real-time Guitar Trainer',
       link: [{ rel: 'icon', type: 'image/svg+xml', href: '/brand/guitarrun-icon.svg' }],
       meta: [

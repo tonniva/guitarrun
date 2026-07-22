@@ -65,7 +65,7 @@ const messages = {
   zh: { ...zh, ...curriculumZh, ...trainerZh, ...detailsZh, ...errorsZh, ...transitionZh, ...leaderboardZh, ...heroZh, ...runtimeZh, ...rhythmZh }, ja: { ...ja, ...curriculumJa, ...trainerJa, ...detailsJa, ...errorsJa, ...transitionJa, ...leaderboardJa, ...heroJa, ...runtimeJa, ...rhythmJa },
   ko: { ...ko, ...curriculumKo, ...trainerKo, ...detailsKo, ...errorsKo, ...transitionKo, ...leaderboardKo, ...heroKo, ...runtimeKo, ...rhythmKo }, es: { ...es, ...curriculumEs, ...trainerEs, ...detailsEs, ...errorsEs, ...transitionEs, ...leaderboardEs, ...heroEs, ...runtimeEs, ...rhythmEs }
 }
-const locale = ref('th')
+const locale = ref('en')
 const runtimeConfig = useRuntimeConfig()
 const languages = [
   { code: 'th', flag: '🇹🇭', name: 'ไทย' },
@@ -82,8 +82,8 @@ const translate = (key, vars = {}) => {
 const tr = translate
 
 const siteUrl = 'https://www.guitarrun.com/'
-const seoTitle = 'GuitarRun – เว็บฝึกกีตาร์ออนไลน์แบบเรียลไทม์'
-const seoDescription = 'ฝึกกีตาร์ออนไลน์ด้วยระบบฟังเสียงจริง ดูตำแหน่งโน้ตบนคอกีตาร์ ฝึกสเกล คอร์ด และจังหวะ พร้อมติดตามพัฒนาการแบบเรียลไทม์'
+const seoTitle = 'GuitarRun — Free Online Guitar Fretboard & Scale Trainer'
+const seoDescription = 'Learn guitar notes, scales, timing, and fretboard positions with real-time pitch detection. Connect your guitar or microphone and start practicing for free.'
 const seoImage = `${siteUrl}brand/guitarrun-logo-source.png`
 
 useSeoMeta({
@@ -94,26 +94,30 @@ useSeoMeta({
   ogDescription: seoDescription,
   ogType: 'website',
   ogUrl: siteUrl,
-  ogLocale: 'th_TH',
+  ogLocale: 'en_US',
   ogSiteName: 'GuitarRun',
   ogImage: seoImage,
   ogImageWidth: 1536,
   ogImageHeight: 1024,
-  ogImageAlt: 'GuitarRun เว็บฝึกกีตาร์ออนไลน์แบบเรียลไทม์',
+  ogImageAlt: 'GuitarRun real-time online guitar fretboard trainer',
   twitterCard: 'summary_large_image',
   twitterTitle: seoTitle,
   twitterDescription: seoDescription,
   twitterImage: seoImage,
-  twitterImageAlt: 'GuitarRun เว็บฝึกกีตาร์ออนไลน์แบบเรียลไทม์'
+  twitterImageAlt: 'GuitarRun real-time online guitar fretboard trainer'
 })
 
 useHead({
   link: [
     { rel: 'canonical', href: siteUrl }
   ],
-  script: [{
-    type: 'application/ld+json',
-    innerHTML: JSON.stringify({
+  script: [
+    {
+      innerHTML: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-TFHZBVJJ');`
+    },
+    {
+      type: 'application/ld+json',
+      innerHTML: JSON.stringify({
       '@context': 'https://schema.org',
       '@graph': [
         {
@@ -145,8 +149,9 @@ useHead({
           }
         }
       ]
-    })
-  }]
+      })
+    }
+  ]
 })
 
 function applyLanguage(code) {
@@ -160,7 +165,7 @@ function applyLanguage(code) {
 
 onMounted(async () => {
   window.__GUITARRUN_CONFIG__ = runtimeConfig.public
-  applyLanguage(localStorage.getItem('fret-language') || 'th')
+  applyLanguage(localStorage.getItem('fret-language') || 'en')
   await import('./guitar.client.js')
   await import('./account.client.js')
 })
@@ -171,6 +176,7 @@ watch(locale, code => {
 </script>
 
 <template>
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TFHZBVJJ" height="0" width="0" style="display:none;visibility:hidden" title="Google Tag Manager" /></noscript>
   <div class="noise" />
   <header class="topbar">
     <a class="brand" href="#" aria-label="GuitarRun home"><img src="/brand/guitarrun-logo.svg" alt="GuitarRun"></a>
@@ -272,6 +278,16 @@ watch(locale, code => {
       <img src="/images/guitarrun-roadmap-studio.png" alt="" width="1918" height="820" loading="lazy" decoding="async">
     </figure>
 
+    <aside class="fretboard-entry" aria-labelledby="fretboard-entry-title">
+      <div class="fretboard-entry-copy">
+        <span class="eyebrow">FREE PRACTICE GUIDE</span>
+        <h2 id="fretboard-entry-title">Learn the guitar fretboard by playing it.</h2>
+        <p>See how GuitarRun turns notes, scales, and timing into a focused practice routine with real-time feedback.</p>
+        <a href="/guitar-fretboard-trainer/">Explore the Fretboard Trainer <span aria-hidden="true">→</span></a>
+      </div>
+      <img src="/images/guitarrun-scale-play-v2.png" alt="GuitarRun fretboard trainer showing scale notes and practice feedback" width="1774" height="887" loading="lazy" decoding="async">
+    </aside>
+
     <section id="roadmap" class="curriculum">
       <div class="curriculum-head"><div><span class="eyebrow">FRET ROADMAP</span><h1>{{ tr('roadmap_title') }}</h1></div><p>{{ tr('roadmap_desc') }}</p></div>
       <div id="roadmapLine" class="roadmap-line" />
@@ -282,7 +298,7 @@ watch(locale, code => {
     <section class="how"><div><b>01</b><h2>{{ tr('plug') }}</h2><p>USB Audio Interface / Microphone</p></div><div><b>02</b><h2>{{ tr('allow') }}</h2><p>Browser audio permission</p></div><div><b>03</b><h2>{{ tr('play') }}</h2><p>Real-time fretboard visualization</p></div></section>
   </main>
 
-  <footer><span>FRET LAB / NUXT</span><span>WEB AUDIO • REAL-TIME PITCH</span></footer>
+  <footer><span>FRET LAB / NUXT</span><a href="/guitar-fretboard-trainer/">FREE FRETBOARD TRAINER</a><span>WEB AUDIO • REAL-TIME PITCH</span></footer>
   <div id="profileModal" class="profile-modal" aria-hidden="true"><div class="profile-card"><button id="profileClose" class="profile-close">×</button><span class="eyebrow">GUITARRUN PROFILE</span><div id="signedOutProfile"><h2>{{ tr('profile_tagline') }}</h2><p>{{ tr('profile_signin_desc') }}</p><div id="googleSignIn"></div><p id="googleSetupHint" class="google-setup-hint"></p></div><div id="signedInProfile" hidden><div class="profile-identity"><img id="profileImage" alt="Profile"><div><h2 id="profileName">Guitar Player</h2><span id="profileEmail"></span></div></div><label class="profile-country"><span>{{ tr('your_country') }}</span><select id="profileCountry" :aria-label="tr('your_country')" /></label><label class="profile-upload">{{ tr('change_profile_photo') }}<input id="profileImageInput" type="file" accept="image/png,image/jpeg,image/webp"></label><div class="profile-stats"><span><b id="profilePracticeTime">0h</b>{{ tr('real_practice_time') }}</span><span><b id="profileNotes">0</b>{{ tr('notes_label') }}</span><span><b id="profileBestCombo">0×</b>{{ tr('best_combo_label') }}</span></div><button id="logoutButton" class="logout-button">{{ tr('sign_out') }}</button></div></div></div>
   <div id="calibrationModal" class="calibration-modal" aria-hidden="true">
     <div class="calibration-card" role="dialog" aria-modal="true" :aria-label="tr('calibrate')">
@@ -294,6 +310,25 @@ watch(locale, code => {
       <div class="calibration-result"><strong id="calibrationStatus">{{ tr('calibration_ready') }}</strong><span id="calibrationDetail">—</span></div>
       <button id="calibrationStart" class="calibration-start">{{ tr('calibration_start') }}</button>
     </div>
+  </div>
+  <div id="resultModal" class="result-modal" aria-hidden="true">
+    <section class="result-card" role="dialog" aria-modal="true" aria-labelledby="resultTitle">
+      <button id="resultClose" class="result-close" aria-label="Close practice result">×</button>
+      <span class="eyebrow">PRACTICE COMPLETE</span>
+      <h2 id="resultTitle">Your run is in the books.</h2>
+      <p id="resultExercise" class="result-exercise">C Major · Position 1</p>
+      <div class="result-score"><span>SCORE</span><strong id="resultScore">0000</strong></div>
+      <div class="result-stats">
+        <div><span>Accuracy</span><strong id="resultAccuracy">—</strong></div>
+        <div><span>Max combo</span><strong id="resultCombo">0×</strong></div>
+        <div><span>Perfect</span><strong id="resultPerfect">0</strong></div>
+      </div>
+      <p class="result-brand">GUITARRUN.COM · PLAY IT. SEE IT.</p>
+      <div class="result-actions">
+        <button id="resultRetry" class="result-retry">↻ Practice again</button>
+        <button id="resultShare" class="result-share">Share result →</button>
+      </div>
+    </section>
   </div>
   <div id="toast" role="status" />
 </template>

@@ -3,7 +3,7 @@ import { CURRICULA } from './locales/curriculum/index.js';
 const NOTE_NAMES = ['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];
 const t = (key, vars) => window.__FRET_T?.(key, vars) || key;
 const OPEN_MIDI = [64, 59, 55, 50, 45, 40]; // visual: high E → low E
-const els = Object.fromEntries(['connectBtn','headerConnect','readoutConnect','setupToggle','setupClose','setupSummary','quickKeyChoices','quickPositionChoices','quickPracticeBtn','demoBtn','inputSelect','statusDot','statusText','levelBar','noteBlock','noteName','octave','frequency','pitchHint','tunerNeedle','centsLabel','fretboard','fretNumbers','toast','keySelect','scaleSelect','patternSelect','bpmSlider','bpmValue','noteValue','rhythmEnabled','practiceBtn','targetNote','beatCount','countRing','patternName','directionText','sequence','stepNow','stepTotal','trainerFeedback','lessonMode','loopToggle','flowToggle','scaleFocusToggle','hitEffect','guitarHitBanner','positionGuide','positionGuideRemaining','positionGuideBar','nextRootDetail','nextStartDetail','positionTransition','countdownOverlay','countdownValue','scoreValue','comboValue','accuracyValue','perfectCount','goodCount','missCount','wrongCount','timingCount','noHitCount','perfectBar','goodBar','missBar','maxComboValue','sessionScore','positionProgress','recordBoard','roadmapLine','lessonGrid','calibrateBtn','calibrationModal','calibrationClose','calibrationStart','calibrationInstruction','calibrationMeter','calibrationStatus','calibrationDetail'].map(id => [id, document.getElementById(id)]));
+const els = Object.fromEntries(['connectBtn','headerConnect','readoutConnect','setupToggle','setupClose','setupSummary','quickKeyChoices','quickPositionChoices','quickPracticeBtn','demoBtn','inputSelect','statusDot','statusText','levelBar','noteBlock','noteName','octave','frequency','pitchHint','tunerNeedle','centsLabel','fretboard','fretNumbers','toast','keySelect','scaleSelect','patternSelect','bpmSlider','bpmValue','noteValue','rhythmEnabled','practiceBtn','targetNote','beatCount','countRing','patternName','directionText','sequence','stepNow','stepTotal','trainerFeedback','lessonMode','loopToggle','flowToggle','scaleFocusToggle','hitEffect','guitarHitBanner','positionGuide','positionGuideRemaining','positionGuideBar','nextRootDetail','nextStartDetail','positionTransition','countdownOverlay','countdownValue','scoreValue','comboValue','accuracyValue','perfectCount','goodCount','missCount','wrongCount','timingCount','noHitCount','perfectBar','goodBar','missBar','maxComboValue','sessionScore','positionProgress','recordBoard','roadmapLine','lessonGrid','calibrateBtn','calibrationModal','calibrationClose','calibrationStart','calibrationInstruction','calibrationMeter','calibrationStatus','calibrationDetail','resultModal','resultClose','resultExercise','resultScore','resultAccuracy','resultCombo','resultPerfect','resultRetry','resultShare'].map(id => [id, document.getElementById(id)]));
 
 let audioContext, analyser, stream, raf, demoTimer, lastMidi = null;
 let smoothedPitch = 0;
@@ -257,6 +257,45 @@ function updateGameStats() {
   els.goodBar.style.width = `${goods / total * 100}%`;
   els.missBar.style.width = `${misses / total * 100}%`;
   if (hits + misses) saveBestRecord();
+}
+
+function getResultSummary() {
+  const accuracy = hits + misses ? Math.round(hits / (hits + misses) * 100) : 0;
+  const exercise = els.patternName.textContent || `${NOTE_NAMES[Number(els.keySelect.value)]} ${SCALES[els.scaleSelect.value]?.name || ''}`;
+  return { score, accuracy, maxCombo, perfects, exercise };
+}
+
+function showPracticeResult() {
+  if (!hits && !misses) return;
+  const result = getResultSummary();
+  els.resultExercise.textContent = result.exercise;
+  els.resultScore.textContent = String(result.score).padStart(4, '0');
+  els.resultAccuracy.textContent = `${result.accuracy}%`;
+  els.resultCombo.textContent = `${result.maxCombo}×`;
+  els.resultPerfect.textContent = result.perfects;
+  els.resultModal.classList.add('open');
+  els.resultModal.setAttribute('aria-hidden', 'false');
+  els.resultClose.focus();
+}
+
+function closePracticeResult() {
+  els.resultModal.classList.remove('open');
+  els.resultModal.setAttribute('aria-hidden', 'true');
+}
+
+async function sharePracticeResult() {
+  const result = getResultSummary();
+  const text = `I scored ${result.score} with ${result.accuracy}% accuracy and a ${result.maxCombo}× combo on ${result.exercise} at GuitarRun.`;
+  const shareData = { title: 'My GuitarRun practice result', text, url: 'https://www.guitarrun.com/' };
+  if (navigator.share) {
+    try { await navigator.share(shareData); }
+    catch (error) { if (error.name !== 'AbortError') toast('Unable to share this result'); }
+    return;
+  }
+  try {
+    await navigator.clipboard.writeText(`${text} ${shareData.url}`);
+    toast('Result copied — ready to share');
+  } catch { toast('Unable to copy this result'); }
 }
 
 function getRecords() {
@@ -647,6 +686,7 @@ function practiceBeat() {
 }
 
 function startPractice() {
+  closePracticeResult();
   stopPractice(false);
   practiceStep = 0;
   metronomeBeat = 0; memoryLevel = 0; applyMemoryLevel();
@@ -730,7 +770,10 @@ function stopPractice(resetLabel = true) {
   previewedMarathonPosition = -1;
   document.querySelectorAll('.cell.next-preview,.cell.next-preview-root,.cell.next-preview-start').forEach(cell => cell.classList.remove('next-preview','next-preview-root','next-preview-start'));
   activeTarget = null;
-  if(hadActivePractice) window.dispatchEvent(new CustomEvent('guitarrun-practice-end'));
+  if(hadActivePractice) {
+    window.dispatchEvent(new CustomEvent('guitarrun-practice-end'));
+    if (resetLabel) showPracticeResult();
+  }
   if (resetLabel) {
     els.practiceBtn.textContent = `▶ ${t('start_practice')}`;
     els.practiceBtn.classList.remove('running');
@@ -909,7 +952,7 @@ els.readoutConnect.addEventListener('click', () => connect());
 els.setupToggle.addEventListener('click', () => setSetupOpen(true));
 els.setupClose.addEventListener('click', () => setSetupOpen(false));
 document.addEventListener('keydown', event => {
-  if (event.key === 'Escape') setSetupOpen(false);
+  if (event.key === 'Escape') { setSetupOpen(false); closePracticeResult(); }
 });
 window.addEventListener('resize', updateSetupClearance);
 if ('ResizeObserver' in window) {
@@ -921,6 +964,10 @@ els.calibrateBtn.addEventListener('click', openCalibration);
 els.calibrationClose.addEventListener('click', closeCalibration);
 els.calibrationStart.addEventListener('click', startCalibration);
 els.calibrationModal.addEventListener('click', e => { if (e.target === els.calibrationModal) closeCalibration(); });
+els.resultClose.addEventListener('click', closePracticeResult);
+els.resultModal.addEventListener('click', event => { if (event.target === els.resultModal) closePracticeResult(); });
+els.resultRetry.addEventListener('click', () => { closePracticeResult(); startPractice(); });
+els.resultShare.addEventListener('click', sharePracticeResult);
 buildFretboard();
 els.keySelect.innerHTML = NOTE_NAMES.map((n,i) => `<option value="${i}" ${i===0?'selected':''}>${n}</option>`).join('');
 els.keySelect.addEventListener('change', () => { stopPractice(); createScalePattern(); renderRecordBoard(); syncQuickControls(); });
