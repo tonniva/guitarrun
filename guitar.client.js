@@ -2,6 +2,10 @@ import { CURRICULA } from './locales/curriculum/index.js';
 
 const NOTE_NAMES = ['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];
 const t = (key, vars) => window.__FRET_T?.(key, vars) || key;
+const trackAnalytics = (event, details = {}) => {
+  window.dataLayer = window.dataLayer || [];
+  window.dataLayer.push({ event, ...details });
+};
 const OPEN_MIDI = [64, 59, 55, 50, 45, 40]; // visual: high E → low E
 const els = Object.fromEntries(['connectBtn','headerConnect','readoutConnect','setupToggle','setupClose','setupSummary','quickKeyChoices','quickPositionChoices','quickPracticeBtn','demoBtn','inputSelect','statusDot','statusText','levelBar','noteBlock','noteName','octave','frequency','pitchHint','tunerNeedle','centsLabel','fretboard','fretNumbers','toast','keySelect','scaleSelect','patternSelect','bpmSlider','bpmValue','noteValue','rhythmEnabled','practiceBtn','targetNote','beatCount','countRing','patternName','directionText','sequence','stepNow','stepTotal','trainerFeedback','lessonMode','loopToggle','flowToggle','scaleFocusToggle','hitEffect','guitarHitBanner','positionGuide','positionGuideRemaining','positionGuideBar','nextRootDetail','nextStartDetail','positionTransition','countdownOverlay','countdownValue','scoreValue','comboValue','accuracyValue','perfectCount','goodCount','missCount','wrongCount','timingCount','noHitCount','perfectBar','goodBar','missBar','maxComboValue','sessionScore','positionProgress','recordBoard','roadmapLine','lessonGrid','calibrateBtn','calibrationModal','calibrationClose','calibrationStart','calibrationInstruction','calibrationMeter','calibrationStatus','calibrationDetail','resultModal','resultClose','resultExercise','resultScore','resultAccuracy','resultCombo','resultPerfect','resultRetry','resultShare'].map(id => [id, document.getElementById(id)]));
 
@@ -276,6 +280,13 @@ function showPracticeResult() {
   els.resultModal.classList.add('open');
   els.resultModal.setAttribute('aria-hidden', 'false');
   els.resultClose.focus();
+  trackAnalytics('practice_complete', {
+    exercise_name: result.exercise,
+    score: result.score,
+    accuracy: result.accuracy,
+    max_combo: result.maxCombo,
+    perfect_hits: result.perfects
+  });
 }
 
 function closePracticeResult() {
@@ -288,12 +299,16 @@ async function sharePracticeResult() {
   const text = `I scored ${result.score} with ${result.accuracy}% accuracy and a ${result.maxCombo}× combo on ${result.exercise} at GuitarRun.`;
   const shareData = { title: 'My GuitarRun practice result', text, url: 'https://www.guitarrun.com/' };
   if (navigator.share) {
-    try { await navigator.share(shareData); }
+    try {
+      await navigator.share(shareData);
+      trackAnalytics('share_result', { share_method: 'native', exercise_name: result.exercise, score: result.score });
+    }
     catch (error) { if (error.name !== 'AbortError') toast('Unable to share this result'); }
     return;
   }
   try {
     await navigator.clipboard.writeText(`${text} ${shareData.url}`);
+    trackAnalytics('share_result', { share_method: 'clipboard', exercise_name: result.exercise, score: result.score });
     toast('Result copied — ready to share');
   } catch { toast('Unable to copy this result'); }
 }
@@ -700,6 +715,14 @@ function startPractice() {
   freePlay = !els.rhythmEnabled.checked;
   practiceIntervalMs = freePlay ? 1000 : (60000 / Number(els.bpmSlider.value)) / Number(els.noteValue.value);
   window.dispatchEvent(new CustomEvent('guitarrun-practice-start',{detail:{key:NOTE_NAMES[Number(els.keySelect.value)],scale:SCALES[els.scaleSelect.value].name,pattern:els.patternName.textContent}}));
+  trackAnalytics('practice_start', {
+    key_name: NOTE_NAMES[Number(els.keySelect.value)],
+    scale_name: SCALES[els.scaleSelect.value].name,
+    exercise_name: els.patternName.textContent,
+    lesson_mode: els.lessonMode.value,
+    tempo_bpm: freePlay ? 0 : Number(els.bpmSlider.value),
+    input_mode: demoTimer ? 'demo' : 'audio'
+  });
   startCountdown();
 }
 
@@ -914,6 +937,7 @@ function setLive(text) {
 function startDemo() {
   if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; cancelAnimationFrame(raf); }
   stopDemo();
+  trackAnalytics('demo_start');
   setLive(t('demo_playing'));
   els.demoBtn.textContent = t('stop_demo');
   const sequence = [82.41, 98, 110, 123.47, 146.83, 164.81, 196, 220, 246.94, 293.66, 329.63];
